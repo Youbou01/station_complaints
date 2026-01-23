@@ -1,0 +1,38 @@
+<div>
+    <div>
+        Login
+    </div>
+    <div>
+        <form >
+            <div>
+                <input type="text"  id="emailLog" placeholder="E-mail adress" [formField]="loginForm.email"/>
+                @if (loginForm.email().invalid() && loginForm.email().dirty()) {
+                    <div>
+                        @for (error of loginForm.email().errors(); track error.kind) {
+                          <div>{{error.message}}</div>
+                        }
+                    </div>
+                }
+            </div>
+            <div>
+                
+                <input type="password"  id="pwdLog" placeholder="Password" [formField]="loginForm.password"/>
+                @if (loginForm.password().invalid() && loginForm.password().dirty()) {
+                    <div>
+                        @for (error of loginForm.password().errors(); track error.kind) {
+                          <div>{{error.message}}</div>
+                        }
+                    </div>
+                }
+            </div>
+            <div>
+                <input type="checkbox" name="" id="">Remember me
+            </div>
+            <div>
+                <input type="submit" value="Login" [disabled]="loginForm().invalid()">
+            </div>
+            
+        </form>
+        <div>Don't have an account ? <a href="">Sign up</a></div>
+    </div>
+</div>
