@@ -1,29 +1,28 @@
 from fastapi import FastAPI
-from pydantic import BaseModel,Field
-from fastapi import HTTPException
-from database import engine
-from models import Base
-from fastapi import Depends
-from sqlalchemy.orm import Session
-from database import get_db
-from models import Complaint
-from typing import Optional
-from security import hash_password
-from models import User
-from fastapi import Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware 
+from pydantic import BaseModel, Field
+from fastapi import HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from database import SessionLocal
-from models import User
-from security import verify_password
+from typing import Optional
+
+from database import engine, get_db
+from models import Base, Complaint, User
+from security import hash_password, verify_password
 from auth import create_access_token
-from auth_dependencies import get_current_user,require_roles
+from auth_dependencies import get_current_user, require_roles
 
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],  #  Angular app's address
+    allow_credentials=True,  # Allows cookies/auth headers to be sent
+    allow_methods=["*"],  # Allows all HTTP methods (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],  # Allows all headers (including Authorization)
+)
 
 class ComplaintCreate(BaseModel):
     station_id:int = Field(ge=1)
