@@ -42,7 +42,7 @@ testem.log
 Thumbs.db
 
 #environment variables
-.env
+*.env
 
 # Python cache
 __pycache__/
@@ -50,3 +50,4 @@ __pycache__/
 
 # Database
 *.db
+node_modules

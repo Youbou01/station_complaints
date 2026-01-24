@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field,EmailStr
 from fastapi import HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import Optional
-
+from enums import RoleEnum,ComplaintTypeEnum,ComplaintStatusEnum
 from database import engine, get_db
 from models import Base, Complaint, User
 from security import hash_password, verify_password
@@ -26,7 +26,7 @@ app.add_middleware(
 
 class ComplaintCreate(BaseModel):
     station_id:int = Field(ge=1)
-    type:str
+    type:ComplaintStatusEnum
     description:str = Field(min_length=10)
     severity:int = Field(ge=1,le=5)
 
@@ -39,7 +39,7 @@ def create_complaint(
 ):
     db_complaint = Complaint(
         station_id=complaint.station_id,
-        type=complaint.type,
+        type=complaint.type.value, # .value converts enum to string for database
         description=complaint.description,
         severity=complaint.severity
     )
@@ -109,19 +109,26 @@ def update_complaint_status(
     return complaint
 
 class UserCreate(BaseModel):
-    email: str
-    password: str
-    role: str
+    email: EmailStr  # Validates email format automatically!
+    password: str = Field(min_length=8)  # Minimum 8 characters
+    role: RoleEnum  # Can ONLY be one of the 5 valid roles!
 @app.post("/users")
 def create_user(
     user:UserCreate,
     db: Session = Depends(get_db)
 ):
+    # Check if email already exists
+    existing_user = db.query(User).filter(User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
     hashed=hash_password(user.password)
     db_user = User(
         email=user.email,
         password_hash=hashed,
-        role=user.role
+        role=user.role.value # .value converts enum to string for database
     )
     db.add(db_user) #notice similiarity to git
     db.commit()
