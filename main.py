@@ -78,7 +78,8 @@ def get_complaints(
 @app.get("/complaints/{complaint_id}")
 def get_specific_complaint(
     complaint_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)  # ADD THIS LINE - any logged-in user
 ):
     complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
                                     #→ WHERE id = ?                     returns one row or None
@@ -115,7 +116,8 @@ class UserCreate(BaseModel):
 @app.post("/users")
 def create_user(
     user:UserCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))  
 ):
     # Check if email already exists
     existing_user = db.query(User).filter(User.email == user.email).first()
@@ -182,4 +184,40 @@ def read_my_profile(current_user: User = Depends(get_current_user)):
         "email": current_user.email,
         "role": current_user.role,
         "is_active": current_user.is_active
+    }
+
+@app.post("/setup/first-admin")
+def create_first_admin(
+    user: UserCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    One-time setup: Create the first administrator.
+    Only works when there are NO users in the database.
+    """
+    # Check if ANY users exist
+    user_count = db.query(User).count()
+    
+    if user_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Setup already completed. Users exist in the database."
+        )
+    
+    # Force the role to be administrator (ignore what they send)
+    hashed = hash_password(user.password)
+    db_user = User(
+        email=user.email,
+        password_hash=hashed,
+        role="administrator"  # Always administrator, no matter what
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    
+    return {
+        "message": "First administrator created successfully!",
+        "id": db_user.id,
+        "email": db_user.email,
+        "role": db_user.role
     }
