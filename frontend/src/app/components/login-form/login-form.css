@@ -1,0 +1,159 @@
+.auth-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--agil-dark);
+}
+
+/* Left Side */
+.auth-left {
+  flex: 1;
+  position: relative;
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .auth-left {
+    display: block;
+  }
+}
+
+.auth-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auth-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 40px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+}
+
+.auth-logo {
+  width: 120px;
+  margin-bottom: 16px;
+}
+
+.auth-tagline {
+  color: var(--agil-white);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Right Side */
+.auth-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background-color: var(--agil-black);
+}
+
+.auth-form-container {
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-title {
+  color: var(--agil-white);
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  color: var(--agil-light-gray);
+  margin-bottom: 32px;
+}
+
+.auth-link {
+  color: var(--agil-yellow);
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* Form */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  background-color: var(--agil-gray);
+  border: 1px solid var(--agil-gray);
+  border-radius: 8px;
+  color: var(--agil-white);
+  font-size: 16px;
+}
+
+.form-input::placeholder {
+  color: var(--agil-light-gray);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--agil-yellow);
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper .form-input {
+  padding-right: 50px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.form-error {
+  color: var(--agil-red);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--agil-yellow);
+  color: var(--agil-black);
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.submit-btn:hover {
+  background-color: #e0b400;
+}
+
+.submit-btn:disabled {
+  background-color: var(--agil-gray);
+  color: var(--agil-light-gray);
+  cursor: not-allowed;
+}

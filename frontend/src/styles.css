@@ -1,3 +1,24 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import "tailwindcss";
+
+/* Simple CSS Variables for AGIL theme */
+:root {
+  --agil-yellow: #F7C600;
+  --agil-red: #E31E24;
+  --agil-black: #1a1a1a;
+  --agil-dark: #2d2d2d;
+  --agil-gray: #3d3d3d;
+  --agil-light-gray: #6b6b6b;
+  --agil-white: #ffffff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--agil-dark);
+  color: var(--agil-white);
+}

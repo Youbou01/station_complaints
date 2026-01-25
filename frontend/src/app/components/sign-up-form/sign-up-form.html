@@ -1,31 +1,148 @@
-<div>
-    <div>
-        Sign up
+<div class="auth-container">
+  <!-- Left Side - Image -->
+  <div class="auth-left">
+    <img src="assets/placeholder.jpg" alt="AGIL Station" class="auth-image" />
+    <div class="auth-overlay">
+      <img src="https://agilenergy.com.tn/fr/images/logoagilenergy.jpg" alt="AGIL Logo" class="auth-logo" />
+      <p class="auth-tagline">Station Complaints Management</p>
     </div>
-    <div>
-        <form >
-            
-            <div>
-                <input type="text"  id="emailSign" placeholder="E-mail adress"/>
+  </div>
+
+  <!-- Right Side - Form -->
+  <div class="auth-right">
+    <div class="auth-form-container">
+      <h1 class="auth-title">Create an account</h1>
+      <p class="auth-subtitle">
+        Already have an account? 
+        <a routerLink="/auth/login" class="auth-link">Log in</a>
+      </p>
+
+      <form (ngSubmit)="onSubmit()" class="auth-form">
+        <!-- Email -->
+        <div class="form-group">
+          <input
+            type="email"
+            [formField]="signUpForm.email"
+            placeholder="Email"
+            class="form-input"
+          />
+          @if (signUpForm.email().invalid() && signUpForm.email().touched()) {
+            <div class="form-error">
+              @for (error of signUpForm.email().errors(); track error.kind) {
+                <span>{{ error.message }}</span>
+              }
             </div>
-            <div>
-                
-                <input type="password"  id="pwdSign" placeholder="Password">
+          }
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <div class="password-wrapper">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              [formField]="signUpForm.password"
+              placeholder="Password"
+              class="form-input"
+            />
+            <button type="button" (click)="togglePassword()" class="password-toggle">
+              {{ showPassword() ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          
+          <!-- Password Strength Bar -->
+          @if (signUpModel().password.length > 0) {
+            <div class="strength-container">
+              <div class="strength-header">
+                <span class="strength-label">Password Strength</span>
+                <span class="strength-text" [class]="'strength-' + strengthLabel().text.toLowerCase()">
+                  {{ strengthLabel().text }}
+                </span>
+              </div>
+              <div class="strength-bar">
+                @for (i of [1, 2, 3, 4]; track i) {
+                  <div 
+                    class="strength-segment"
+                    [class.active]="passwordStrength() >= i"
+                    [class]="'strength-' + strengthLabel().text.toLowerCase()"
+                  ></div>
+                }
+              </div>
             </div>
-            <div>
-                <select name="" id="roleSelect">
-                    <option value="">Choose what's your role</option>
-                </select>
+          }
+          
+          <!-- Password Requirements -->
+          @if (signUpForm.password().touched() || signUpModel().password.length > 0) {
+            <div class="password-checks">
+              @for (check of passwordChecks(); track check.label) {
+                <span class="check-item" [class.met]="check.met">
+                  {{ check.met ? '✓' : '○' }} {{ check.label }}
+                </span>
+              }
             </div>
-            
-            <div>
-                <input type="submit" value="Sign up">
+          }
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <div class="password-wrapper">
+            <input
+              [type]="showConfirmPassword() ? 'text' : 'password'"
+              [formField]="signUpForm.confirmPassword"
+              placeholder="Confirm password"
+              class="form-input"
+            />
+            <button type="button" (click)="toggleConfirmPassword()" class="password-toggle">
+              {{ showConfirmPassword() ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          @if (signUpModel().confirmPassword.length > 0) {
+            <div class="password-match" [class.match]="passwordsMatch()">
+              {{ passwordsMatch() ? '✓ Passwords match' : '✗ Passwords do not match' }}
             </div>
-            <div>
-                By creating an account, you agree and accept our
-                Terms and Privacy Policy.
-            </div>
-        </form>
-        <div>Already have an account ? <a href="">Login</a></div>
+          }
+        </div>
+
+        <!-- Role Selection -->
+        <div class="form-group">
+          <label class="form-label">Select your role</label>
+          <div class="role-options">
+            @for (role of roleOptions; track role.value) {
+              <button
+                type="button"
+                (click)="selectRole(role.value)"
+                class="role-btn"
+                [class.selected]="signUpModel().role === role.value"
+              >
+                {{ role.label }}
+              </button>
+            }
+          </div>
+          @if (signUpForm.role().invalid() && signUpForm.role().touched()) {
+            <div class="form-error">Please select your role</div>
+          }
+        </div>
+
+        <!-- Terms Checkbox -->
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" required class="checkbox-input" />
+            <span>I agree to the Terms & Conditions</span>
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          [disabled]="signUpForm().invalid() || !passwordsMatch() || isLoading()|| passwordStrength()<3"
+          class="submit-btn"
+        >
+          @if (isLoading()) {
+            Creating account...
+          } @else {
+            Create account
+          }
+        </button>
+      </form>
     </div>
+  </div>
 </div>

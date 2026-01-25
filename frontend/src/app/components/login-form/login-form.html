@@ -1,38 +1,75 @@
-<div>
-    <div>
-        Login
+<div class="auth-container">
+  <!-- Left Side - Image -->
+  <div class="auth-left">
+    <img src="assets/placeholder.jpg" alt="AGIL Station" class="auth-image" />
+    <div class="auth-overlay">
+      <img src="https://agilenergy.com.tn/fr/images/logoagilenergy.jpg" alt="AGIL Logo" class="auth-logo" />
+      <p class="auth-tagline">Station Complaints Management</p>
     </div>
-    <div>
-        <form >
-            <div>
-                <input type="text"  id="emailLog" placeholder="E-mail adress" [formField]="loginForm.email"/>
-                @if (loginForm.email().invalid() && loginForm.email().dirty()) {
-                    <div>
-                        @for (error of loginForm.email().errors(); track error.kind) {
-                          <div>{{error.message}}</div>
-                        }
-                    </div>
-                }
+  </div>
+
+  <!-- Right Side - Form -->
+  <div class="auth-right">
+    <div class="auth-form-container">
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-subtitle">
+        Don't have an account? 
+        <a routerLink="/auth/signup" class="auth-link">Sign up</a>
+      </p>
+
+      <form (ngSubmit)="onSubmit()" class="auth-form">
+        <!-- Email -->
+        <div class="form-group">
+          <input
+            type="email"
+            [formField]="loginForm.email"
+            placeholder="Email"
+            class="form-input"
+          />
+          @if (loginForm.email().invalid() && loginForm.email().touched()) {
+            <div class="form-error">
+              @for (error of loginForm.email().errors(); track error.kind) {
+                <span>{{ error.message }}</span>
+              }
             </div>
-            <div>
-                
-                <input type="password"  id="pwdLog" placeholder="Password" [formField]="loginForm.password"/>
-                @if (loginForm.password().invalid() && loginForm.password().dirty()) {
-                    <div>
-                        @for (error of loginForm.password().errors(); track error.kind) {
-                          <div>{{error.message}}</div>
-                        }
-                    </div>
-                }
+          }
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <div class="password-wrapper">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              [formField]="loginForm.password"
+              placeholder="Password"
+              class="form-input"
+            />
+            <button type="button" (click)="togglePassword()" class="password-toggle">
+              {{ showPassword() ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          @if (loginForm.password().invalid() && loginForm.password().touched()) {
+            <div class="form-error">
+              @for (error of loginForm.password().errors(); track error.kind) {
+                <span>{{ error.message }}</span>
+              }
             </div>
-            <div>
-                <input type="checkbox" name="" id="">Remember me
-            </div>
-            <div>
-                <input type="submit" value="Login" [disabled]="loginForm().invalid()">
-            </div>
-            
-        </form>
-        <div>Don't have an account ? <a href="">Sign up</a></div>
+          }
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          [disabled]="loginForm().invalid() || isLoading()"
+          class="submit-btn"
+        >
+          @if (isLoading()) {
+            Signing in...
+          } @else {
+            Sign in
+          }
+        </button>
+      </form>
     </div>
+  </div>
 </div>
