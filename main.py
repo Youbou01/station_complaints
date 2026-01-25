@@ -23,7 +23,7 @@ from schemas import (
 from security import hash_password, verify_password
 from auth import create_access_token
 from auth_dependencies import get_current_user, require_roles
-from enums import ComplaintStatusEnum, ComplaintTypeEnum
+from enums import ComplaintStatusEnum, ComplaintTypeEnum, RoleEnum
 
 
 # Create database tables
@@ -110,7 +110,11 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
-
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account pending approval. Please wait for admin to activate your account."
+        )
     access_token = create_access_token(
         data={"user_id": user.id, "role": user.role}
     )
@@ -246,3 +250,152 @@ def update_complaint_status(
     db.refresh(complaint)
 
     return complaint
+
+
+@app.post("/register", response_model=UserResponse, tags=["Authentication"])
+def register(
+    user: UserCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Public registration endpoint.
+    Creates a new user with is_active=False (pending approval).
+    Admin must approve before user can login.
+    """
+    # Check if email already exists
+    existing_user = db.query(User).filter(User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    # Don't allow self-registration as administrator
+    if user.role == RoleEnum.ADMINISTRATOR:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot register as administrator"
+        )
+    
+    hashed = hash_password(user.password)
+    db_user = User(
+        email=user.email,
+        password_hash=hashed,
+        role=user.role.value,
+        is_active=False  # Pending approval!
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    
+    return db_user
+
+# ============== USER MANAGEMENT (ADMIN) ==============
+
+@app.get("/users", response_model=list[UserResponse], tags=["Users"])
+def get_all_users(
+    is_active: bool | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))
+):
+    """
+    Get all users. Admin only.
+    Can filter by is_active status.
+    """
+    query = db.query(User)
+    
+    if is_active is not None:
+        query = query.filter(User.is_active == is_active)
+    
+    return query.all()
+
+
+@app.put("/users/{user_id}/activate", response_model=UserResponse, tags=["Users"])
+def activate_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))
+):
+    """
+    Activate a user (approve registration). Admin only.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    if user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User is already active"
+        )
+    
+    user.is_active = True
+    db.commit()
+    db.refresh(user)
+    
+    return user
+
+
+@app.put("/users/{user_id}/deactivate", response_model=UserResponse, tags=["Users"])
+def deactivate_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))
+):
+    """
+    Deactivate a user. Admin only.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Prevent admin from deactivating themselves
+    if user.id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot deactivate yourself"
+        )
+    
+    user.is_active = False
+    db.commit()
+    db.refresh(user)
+    
+    return user
+
+
+@app.delete("/users/{user_id}", tags=["Users"])
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))
+):
+    """
+    Delete a user. Admin only.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Prevent admin from deleting themselves
+    if user.id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete yourself"
+        )
+    
+    db.delete(user)
+    db.commit()
+    
+    return {"message": "User deleted successfully"}

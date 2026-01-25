@@ -15,6 +15,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/sign-up-form/sign-up-form').then(m => m.SignUpForm)
   },
   {
+    path: 'dashboard',
+    loadComponent: () => import('./components/dashboard/dashboard').then(m => m.Dashboard)
+  },
+  {
     path: '**',
     redirectTo: 'auth/login'
   }

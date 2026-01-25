@@ -2,15 +2,18 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { SignUpData, signUpInitialData, signUpSchema, Role, ROLE_OPTIONS } from '../../models/auth';
+import { AuthService } from '../../services/auth-service';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-sign-up-form',
-  imports: [FormField, RouterLink],
+  imports: [FormField, RouterLink,FormsModule,ReactiveFormsModule],
   templateUrl: './sign-up-form.html',
   styleUrl: './sign-up-form.css',
 })
 export class SignUpForm {
   private router = inject(Router);
+  private authService:AuthService=inject(AuthService);
 
   // Form model and schema
   signUpModel = signal<SignUpData>(signUpInitialData);
@@ -21,6 +24,8 @@ export class SignUpForm {
   showConfirmPassword = signal(false);
   isLoading = signal(false);
   roleOptions = ROLE_OPTIONS;
+  errorMessage = signal<string>('');
+  successMessage = signal<string>('');
 
   // Password strength calculation
   passwordStrength = computed(() => {
@@ -75,18 +80,25 @@ export class SignUpForm {
     this.signUpModel.update((data) => ({ ...data, role }));
   }
 
-  onSubmit() {
+  async onSubmit() {
     if (this.signUpForm().invalid() || !this.passwordsMatch()) return;
 
     this.isLoading.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
 
-    // TODO: Call auth service
-    console.log('Sign up attempt:', this.signUpModel());
+    const { email, password, role } = this.signUpModel();
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await this.authService.register(email,password,role as string)
+      this.successMessage.set('Registration successful! Please wait for admin approval before logging in.');
+
+      // Reset form after successful registration
+      this.signUpModel.set(signUpInitialData);
+    } catch (error) {
+      this.errorMessage.set(error as string);
+    } finally{
       this.isLoading.set(false);
-      this.router.navigate(['/auth/login']);
-    }, 1500);
+    }
   }
 }

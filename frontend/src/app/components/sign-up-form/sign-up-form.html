@@ -1,9 +1,13 @@
 <div class="auth-container">
   <!-- Left Side - Image -->
   <div class="auth-left">
-    <img src="assets/placeholder.jpg" alt="AGIL Station" class="auth-image" />
+    <img src="assets/placeholder.svg" alt="AGIL Station" class="auth-image" />
     <div class="auth-overlay">
-      <img src="https://agilenergy.com.tn/fr/images/logoagilenergy.jpg" alt="AGIL Logo" class="auth-logo" />
+      <img
+        src="https://agilenergy.com.tn/fr/images/logoagilenergy.jpg"
+        alt="AGIL Logo"
+        class="auth-logo"
+      />
       <p class="auth-tagline">Station Complaints Management</p>
     </div>
   </div>
@@ -13,11 +17,25 @@
     <div class="auth-form-container">
       <h1 class="auth-title">Create an account</h1>
       <p class="auth-subtitle">
-        Already have an account? 
+        Already have an account?
         <a routerLink="/auth/login" class="auth-link">Log in</a>
       </p>
 
-      <form (ngSubmit)="onSubmit()" class="auth-form">
+      <form (submit)="onSubmit();" class="auth-form">
+        <!-- Success Message -->
+        @if (successMessage()) {
+          <div class="success-banner">
+            {{ successMessage() }}
+          </div>
+        }
+
+        <!-- Error Message -->
+        @if (errorMessage()) {
+          <div class="error-banner">
+            {{ errorMessage() }}
+          </div>
+        }
+
         <!-- Email -->
         <div class="form-group">
           <input
@@ -48,19 +66,22 @@
               {{ showPassword() ? '🙈' : '👁️' }}
             </button>
           </div>
-          
+
           <!-- Password Strength Bar -->
           @if (signUpModel().password.length > 0) {
             <div class="strength-container">
               <div class="strength-header">
                 <span class="strength-label">Password Strength</span>
-                <span class="strength-text" [class]="'strength-' + strengthLabel().text.toLowerCase()">
+                <span
+                  class="strength-text"
+                  [class]="'strength-' + strengthLabel().text.toLowerCase()"
+                >
                   {{ strengthLabel().text }}
                 </span>
               </div>
               <div class="strength-bar">
                 @for (i of [1, 2, 3, 4]; track i) {
-                  <div 
+                  <div
                     class="strength-segment"
                     [class.active]="passwordStrength() >= i"
                     [class]="'strength-' + strengthLabel().text.toLowerCase()"
@@ -69,7 +90,7 @@
               </div>
             </div>
           }
-          
+
           <!-- Password Requirements -->
           @if (signUpForm.password().touched() || signUpModel().password.length > 0) {
             <div class="password-checks">
@@ -133,7 +154,9 @@
         <!-- Submit Button -->
         <button
           type="submit"
-          [disabled]="signUpForm().invalid() || !passwordsMatch() || isLoading()|| passwordStrength()<3"
+          [disabled]="
+            signUpForm().invalid() || !passwordsMatch() || isLoading() || passwordStrength() < 3
+          "
           class="submit-btn"
         >
           @if (isLoading()) {

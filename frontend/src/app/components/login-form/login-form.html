@@ -1,9 +1,13 @@
 <div class="auth-container">
   <!-- Left Side - Image -->
   <div class="auth-left">
-    <img src="assets/placeholder.jpg" alt="AGIL Station" class="auth-image" />
+    <img src="assets/placeholder.svg" alt="AGIL Station" class="auth-image" />
     <div class="auth-overlay">
-      <img src="https://agilenergy.com.tn/fr/images/logoagilenergy.jpg" alt="AGIL Logo" class="auth-logo" />
+      <img
+        src="https://agilenergy.com.tn/fr/images/logoagilenergy.jpg"
+        alt="AGIL Logo"
+        class="auth-logo"
+      />
       <p class="auth-tagline">Station Complaints Management</p>
     </div>
   </div>
@@ -13,11 +17,17 @@
     <div class="auth-form-container">
       <h1 class="auth-title">Welcome back</h1>
       <p class="auth-subtitle">
-        Don't have an account? 
+        Don't have an account?
         <a routerLink="/auth/signup" class="auth-link">Sign up</a>
       </p>
 
-      <form (ngSubmit)="onSubmit()" class="auth-form">
+      <form (submit)="onSubmit()" class="auth-form">
+        <!-- Error Message -->
+        @if (errorMessage()) {
+          <div class="error-banner">
+            {{ errorMessage() }}
+          </div>
+        }
         <!-- Email -->
         <div class="form-group">
           <input
@@ -58,11 +68,7 @@
         </div>
 
         <!-- Submit Button -->
-        <button
-          type="submit"
-          [disabled]="loginForm().invalid() || isLoading()"
-          class="submit-btn"
-        >
+        <button type="submit" [disabled]="loginForm().invalid() || isLoading()" class="submit-btn">
           @if (isLoading()) {
             Signing in...
           } @else {

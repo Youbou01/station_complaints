@@ -1,34 +1,10 @@
-var __defProp = Object.defineProperty;
-var __defProps = Object.defineProperties;
-var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols = Object.getOwnPropertySymbols;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __propIsEnum = Object.prototype.propertyIsEnumerable;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues = (a, b) => {
-  for (var prop in b ||= {})
-    if (__hasOwnProp.call(b, prop))
-      __defNormalProp(a, prop, b[prop]);
-  if (__getOwnPropSymbols)
-    for (var prop of __getOwnPropSymbols(b)) {
-      if (__propIsEnum.call(b, prop))
-        __defNormalProp(a, prop, b[prop]);
-    }
-  return a;
-};
-var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
-var __objRest = (source, exclude) => {
-  var target = {};
-  for (var prop in source)
-    if (__hasOwnProp.call(source, prop) && exclude.indexOf(prop) < 0)
-      target[prop] = source[prop];
-  if (source != null && __getOwnPropSymbols)
-    for (var prop of __getOwnPropSymbols(source)) {
-      if (exclude.indexOf(prop) < 0 && __propIsEnum.call(source, prop))
-        target[prop] = source[prop];
-    }
-  return target;
-};
+import {
+  __spreadProps,
+  __spreadValues,
+  getCurrentInjector,
+  isNotFound,
+  setCurrentInjector
+} from "./chunk-LO7XNRLQ.js";
 
 // node_modules/@angular/core/fesm2022/_effect-chunk.mjs
 var activeConsumer = null;
@@ -3298,21 +3274,6 @@ function tap(observerOrNext, error, complete) {
   }) : identity;
 }
 
-// node_modules/@angular/core/fesm2022/_not_found-chunk.mjs
-var _currentInjector = void 0;
-function getCurrentInjector() {
-  return _currentInjector;
-}
-function setCurrentInjector(injector) {
-  const former = _currentInjector;
-  _currentInjector = injector;
-  return former;
-}
-var NOT_FOUND = /* @__PURE__ */ Symbol("NotFound");
-function isNotFound(e) {
-  return e === NOT_FOUND || e?.name === "ɵNotFound";
-}
-
 // node_modules/@angular/core/fesm2022/_linked_signal-chunk.mjs
 function createLinkedSignal(sourceFn, computationFn, equalityFn) {
   const node = Object.create(LINKED_SIGNAL_NODE);
@@ -4172,7 +4133,7 @@ This can happen if the dependency type is a primitive like a string or if an anc
 
 Please check that 1) the type for the parameter at index ${index} is correct and 2) the correct Angular decorators are defined for this class and its ancestors.`);
 }
-function inject2(token, options) {
+function inject(token, options) {
   return ɵɵinject(token, convertToBitFlags(options));
 }
 function convertToBitFlags(flags) {
@@ -5642,7 +5603,7 @@ var PendingTasksInternal = class _PendingTasksInternal {
   pendingTasks = /* @__PURE__ */ new Set();
   destroyed = false;
   pendingTask = new BehaviorSubject(false);
-  debugTaskTracker = inject2(DEBUG_TASK_TRACKER, {
+  debugTaskTracker = inject(DEBUG_TASK_TRACKER, {
     optional: true
   });
   get hasPendingTasks() {
@@ -5698,10 +5659,10 @@ var EventEmitter_ = class extends Subject {
     super();
     this.__isAsync = isAsync;
     if (isInInjectionContext()) {
-      this.destroyRef = inject2(DestroyRef, {
+      this.destroyRef = inject(DestroyRef, {
         optional: true
       }) ?? void 0;
-      this.pendingTasks = inject2(PendingTasksInternal, {
+      this.pendingTasks = inject(PendingTasksInternal, {
         optional: true
       }) ?? void 0;
     }
@@ -6048,8 +6009,8 @@ var ErrorHandler = class {
 };
 var INTERNAL_APPLICATION_ERROR_HANDLER = new InjectionToken(typeof ngDevMode === "undefined" || ngDevMode ? "internal error handler" : "", {
   factory: () => {
-    const zone = inject2(NgZone);
-    const injector = inject2(EnvironmentInjector);
+    const zone = inject(NgZone);
+    const injector = inject(EnvironmentInjector);
     let userErrorHandler;
     return (e) => {
       zone.runOutsideAngular(() => {
@@ -6068,7 +6029,7 @@ var INTERNAL_APPLICATION_ERROR_HANDLER = new InjectionToken(typeof ngDevMode ===
 var errorHandlerEnvironmentInitializer = {
   provide: ENVIRONMENT_INITIALIZER,
   useValue: () => {
-    const handler = inject2(ErrorHandler, {
+    const handler = inject(ErrorHandler, {
       optional: true
     });
     if ((typeof ngDevMode === "undefined" || ngDevMode) && handler === null) {
@@ -6082,11 +6043,11 @@ var globalErrorListeners = new InjectionToken(typeof ngDevMode !== "undefined" &
     if (false) {
       return;
     }
-    const window3 = inject2(DOCUMENT).defaultView;
+    const window3 = inject(DOCUMENT).defaultView;
     if (!window3) {
       return;
     }
-    const errorHandler = inject2(INTERNAL_APPLICATION_ERROR_HANDLER);
+    const errorHandler = inject(INTERNAL_APPLICATION_ERROR_HANDLER);
     const rejectionListener = (e) => {
       errorHandler(e.reason);
       e.preventDefault();
@@ -6110,14 +6071,14 @@ var globalErrorListeners = new InjectionToken(typeof ngDevMode !== "undefined" &
     } else {
       setupEventListeners();
     }
-    inject2(DestroyRef).onDestroy(() => {
+    inject(DestroyRef).onDestroy(() => {
       window3.removeEventListener("error", errorListener);
       window3.removeEventListener("unhandledrejection", rejectionListener);
     });
   }
 });
 function provideBrowserGlobalErrorListeners() {
-  return makeEnvironmentProviders([provideEnvironmentInitializer(() => void inject2(globalErrorListeners))]);
+  return makeEnvironmentProviders([provideEnvironmentInitializer(() => void inject(globalErrorListeners))]);
 }
 function ɵunwrapWritableSignal(value) {
   return null;
@@ -6171,9 +6132,9 @@ var PROVIDED_ZONELESS = new InjectionToken(typeof ngDevMode === "undefined" || n
 });
 var SCHEDULE_IN_ROOT_ZONE = new InjectionToken(typeof ngDevMode === "undefined" || ngDevMode ? "run changes outside zone in root" : "");
 var PendingTasks = class _PendingTasks {
-  internalPendingTasks = inject2(PendingTasksInternal);
-  scheduler = inject2(ChangeDetectionScheduler);
-  errorHandler = inject2(INTERNAL_APPLICATION_ERROR_HANDLER);
+  internalPendingTasks = inject(PendingTasksInternal);
+  scheduler = inject(ChangeDetectionScheduler);
+  errorHandler = inject(INTERNAL_APPLICATION_ERROR_HANDLER);
   add() {
     const taskId = this.internalPendingTasks.add();
     return () => {
@@ -6281,7 +6242,7 @@ function effect(effectFn, options) {
   if (ngDevMode && options?.allowSignalWrites !== void 0) {
     console.warn(`The 'allowSignalWrites' flag is deprecated and no longer impacts effect() (writes are always allowed)`);
   }
-  const injector = options?.injector ?? inject2(Injector);
+  const injector = options?.injector ?? inject(Injector);
   let destroyRef = options?.manualCleanup !== true ? injector.get(DestroyRef) : null;
   let node;
   const viewContext = injector.get(ViewContext, null, {
@@ -7158,7 +7119,7 @@ var BLOOM_SIZE = 256;
 var BLOOM_MASK = BLOOM_SIZE - 1;
 var BLOOM_BUCKET_BITS = 5;
 var nextNgElementId = 0;
-var NOT_FOUND2 = {};
+var NOT_FOUND = {};
 function bloomAdd(injectorIndex, tView, type) {
   ngDevMode && assertEqual(tView.firstCreatePass, true, "expected firstCreatePass to be true");
   let id;
@@ -7295,13 +7256,13 @@ function lookupTokenUsingModuleInjector(lView, token, flags, notFoundValue) {
 function getOrCreateInjectable(tNode, lView, token, flags = 0, notFoundValue) {
   if (tNode !== null) {
     if (lView[FLAGS] & 2048 && !(flags & 2)) {
-      const embeddedInjectorValue = lookupTokenUsingEmbeddedInjector(tNode, lView, token, flags, NOT_FOUND2);
-      if (embeddedInjectorValue !== NOT_FOUND2) {
+      const embeddedInjectorValue = lookupTokenUsingEmbeddedInjector(tNode, lView, token, flags, NOT_FOUND);
+      if (embeddedInjectorValue !== NOT_FOUND) {
         return embeddedInjectorValue;
       }
     }
-    const value = lookupTokenUsingNodeInjector(tNode, lView, token, flags, NOT_FOUND2);
-    if (value !== NOT_FOUND2) {
+    const value = lookupTokenUsingNodeInjector(tNode, lView, token, flags, NOT_FOUND);
+    if (value !== NOT_FOUND) {
       return value;
     }
   }
@@ -7353,7 +7314,7 @@ function lookupTokenUsingNodeInjector(tNode, lView, token, flags, notFoundValue)
       ngDevMode && assertTNodeForLView(tView.data[injectorIndex + 8], lView);
       if (bloomHasToken(bloomHash, injectorIndex, tView.data)) {
         const instance = searchTokensOnInjector(injectorIndex, lView, token, previousTView, flags, hostTElementNode);
-        if (instance !== NOT_FOUND2) {
+        if (instance !== NOT_FOUND) {
           return instance;
         }
       }
@@ -7378,7 +7339,7 @@ function searchTokensOnInjector(injectorIndex, lView, token, previousTView, flag
   if (injectableIdx !== null) {
     return getNodeInjectable(lView, currentTView, injectableIdx, tNode, flags);
   } else {
-    return NOT_FOUND2;
+    return NOT_FOUND;
   }
 }
 function locateDirectiveOrProvider(tNode, tView, token, canAccessViewProviders, isHostSpecialCase) {
@@ -7527,16 +7488,16 @@ function lookupTokenUsingEmbeddedInjector(tNode, lView, token, flags, notFoundVa
   let currentLView = lView;
   while (currentTNode !== null && currentLView !== null && currentLView[FLAGS] & 2048 && !isRootView(currentLView)) {
     ngDevMode && assertTNodeForLView(currentTNode, currentLView);
-    const nodeInjectorValue = lookupTokenUsingNodeInjector(currentTNode, currentLView, token, flags | 2, NOT_FOUND2);
-    if (nodeInjectorValue !== NOT_FOUND2) {
+    const nodeInjectorValue = lookupTokenUsingNodeInjector(currentTNode, currentLView, token, flags | 2, NOT_FOUND);
+    if (nodeInjectorValue !== NOT_FOUND) {
       return nodeInjectorValue;
     }
     let parentTNode = currentTNode.parent;
     if (!parentTNode) {
       const embeddedViewInjector = currentLView[EMBEDDED_VIEW_INJECTOR];
       if (embeddedViewInjector) {
-        const embeddedViewInjectorValue = embeddedViewInjector.get(token, NOT_FOUND2, flags);
-        if (embeddedViewInjectorValue !== NOT_FOUND2) {
+        const embeddedViewInjectorValue = embeddedViewInjector.get(token, NOT_FOUND, flags);
+        if (embeddedViewInjectorValue !== NOT_FOUND) {
           return embeddedViewInjectorValue;
         }
       }
@@ -8299,7 +8260,7 @@ var validAppIdInitializer = {
   provide: ENVIRONMENT_INITIALIZER,
   multi: true,
   useValue: () => {
-    const appId = inject2(APP_ID);
+    const appId = inject(APP_ID);
     const isAlphanumeric = /^[a-zA-Z0-9\-_]+$/.test(appId);
     if (!isAlphanumeric) {
       throw new RuntimeError(211, `APP_ID value "${appId}" is not alphanumeric. The APP_ID must be a string of alphanumeric characters. (a-zA-Z0-9), hyphens (-) and underscores (_) are allowed.`);
@@ -8314,7 +8275,7 @@ var PLATFORM_ID = new InjectionToken(typeof ngDevMode !== "undefined" && ngDevMo
 var ANIMATION_MODULE_TYPE = new InjectionToken(typeof ngDevMode !== "undefined" && ngDevMode ? "AnimationModuleType" : "");
 var CSP_NONCE = new InjectionToken(typeof ngDevMode !== "undefined" && ngDevMode ? "CSP nonce" : "", {
   factory: () => {
-    return inject2(DOCUMENT).body?.querySelector("[ngCspNonce]")?.getAttribute("ngCspNonce") || null;
+    return inject(DOCUMENT).body?.querySelector("[ngCspNonce]")?.getAttribute("ngCspNonce") || null;
   }
 });
 var IMAGE_CONFIG_DEFAULTS = {
@@ -8336,7 +8297,7 @@ var TransferState = class _TransferState {
     factory: () => {
       const transferState = new _TransferState();
       if (true) {
-        transferState.store = retrieveTransferredState(inject2(DOCUMENT), inject2(APP_ID));
+        transferState.store = retrieveTransferredState(inject(DOCUMENT), inject(APP_ID));
       }
       return transferState;
     }
@@ -8632,8 +8593,8 @@ var DEHYDRATED_BLOCK_REGISTRY = new InjectionToken(typeof ngDevMode !== "undefin
 var DehydratedBlockRegistry = class _DehydratedBlockRegistry {
   registry = /* @__PURE__ */ new Map();
   cleanupFns = /* @__PURE__ */ new Map();
-  jsActionMap = inject2(JSACTION_BLOCK_ELEMENT_MAP);
-  contract = inject2(JSACTION_EVENT_CONTRACT);
+  jsActionMap = inject(JSACTION_BLOCK_ELEMENT_MAP);
+  contract = inject(JSACTION_EVENT_CONTRACT);
   add(blockId, info) {
     this.registry.set(blockId, info);
     if (this.awaitingCallbacks.has(blockId)) {
@@ -10471,16 +10432,16 @@ var AfterRenderManager = class _AfterRenderManager {
 };
 var AFTER_RENDER_PHASES = /* @__PURE__ */ (() => [0, 1, 2, 3])();
 var AfterRenderImpl = class _AfterRenderImpl {
-  ngZone = inject2(NgZone);
-  scheduler = inject2(ChangeDetectionScheduler);
-  errorHandler = inject2(ErrorHandler, {
+  ngZone = inject(NgZone);
+  scheduler = inject(ChangeDetectionScheduler);
+  errorHandler = inject(ErrorHandler, {
     optional: true
   });
   sequences = /* @__PURE__ */ new Set();
   deferredRegistrations = /* @__PURE__ */ new Set();
   executing = false;
   constructor() {
-    inject2(TracingService, {
+    inject(TracingService, {
       optional: true
     });
   }
@@ -10600,7 +10561,7 @@ function afterEveryRender(callbackOrSpec, options) {
   if (ngDevMode && !options?.injector) {
     assertInInjectionContext(afterEveryRender);
   }
-  const injector = options?.injector ?? inject2(Injector);
+  const injector = options?.injector ?? inject(Injector);
   if (false) {
     return NOOP_AFTER_RENDER_REF;
   }
@@ -10611,7 +10572,7 @@ function afterNextRender(callbackOrSpec, options) {
   if (ngDevMode && !options?.injector) {
     assertInInjectionContext(afterNextRender);
   }
-  const injector = options?.injector ?? inject2(Injector);
+  const injector = options?.injector ?? inject(Injector);
   if (false) {
     return NOOP_AFTER_RENDER_REF;
   }
@@ -10645,7 +10606,7 @@ var ANIMATION_QUEUE = new InjectionToken(typeof ngDevMode !== "undefined" && ngD
       queue: /* @__PURE__ */ new Set(),
       isScheduled: false,
       scheduler: null,
-      injector: inject2(EnvironmentInjector)
+      injector: inject(EnvironmentInjector)
     };
   }
 });
@@ -13061,7 +13022,7 @@ function enablePrepareI18nBlockForHydrationImpl() {
   _prepareI18nBlockForHydrationImpl = prepareI18nBlockForHydrationImpl;
 }
 function isI18nHydrationEnabled(injector) {
-  injector = injector ?? inject2(Injector);
+  injector = injector ?? inject(Injector);
   return injector.get(IS_I18N_HYDRATION_ENABLED, false);
 }
 function getOrComputeI18nChildren(tView, context2) {
@@ -16410,7 +16371,7 @@ var IdleScheduler = class _IdleScheduler {
   idleId = null;
   current = /* @__PURE__ */ new Set();
   deferred = /* @__PURE__ */ new Set();
-  ngZone = inject2(NgZone);
+  ngZone = inject(NgZone);
   requestIdleCallbackFn = _requestIdleCallback().bind(globalThis);
   cancelIdleCallbackFn = _cancelIdleCallback().bind(globalThis);
   add(callback) {
@@ -17772,7 +17733,7 @@ var Testability = class _Testability {
     this._ngZone = _ngZone;
     this.registry = registry;
     if (isInInjectionContext()) {
-      this._destroyRef = inject2(DestroyRef, {
+      this._destroyRef = inject(DestroyRef, {
         optional: true
       }) ?? void 0;
     }
@@ -17960,10 +17921,10 @@ var ApplicationInitStatus = class _ApplicationInitStatus {
     this.resolve = res;
     this.reject = rej;
   });
-  appInits = inject2(APP_INITIALIZER, {
+  appInits = inject(APP_INITIALIZER, {
     optional: true
   }) ?? [];
-  injector = inject2(Injector);
+  injector = inject(Injector);
   constructor() {
     if ((typeof ngDevMode === "undefined" || ngDevMode) && !Array.isArray(this.appInits)) {
       throw new RuntimeError(-209, `Unexpected type of the \`APP_INITIALIZER\` token value (expected an array, but got ${typeof this.appInits}). Please check that the \`APP_INITIALIZER\` token is configured as a \`multi: true\` provider.`);
@@ -18048,10 +18009,10 @@ var ApplicationRef = class _ApplicationRef {
   _destroyed = false;
   _destroyListeners = [];
   _views = [];
-  internalErrorHandler = inject2(INTERNAL_APPLICATION_ERROR_HANDLER);
-  afterRenderManager = inject2(AfterRenderManager);
-  zonelessEnabled = inject2(ZONELESS_ENABLED);
-  rootEffectScheduler = inject2(EffectScheduler);
+  internalErrorHandler = inject(INTERNAL_APPLICATION_ERROR_HANDLER);
+  afterRenderManager = inject(AfterRenderManager);
+  zonelessEnabled = inject(ZONELESS_ENABLED);
+  rootEffectScheduler = inject(EffectScheduler);
   dirtyFlags = 0;
   tracingSnapshot = null;
   allTestViews = /* @__PURE__ */ new Set();
@@ -18066,12 +18027,12 @@ var ApplicationRef = class _ApplicationRef {
   }
   componentTypes = [];
   components = [];
-  internalPendingTask = inject2(PendingTasksInternal);
+  internalPendingTask = inject(PendingTasksInternal);
   get isStable() {
     return this.internalPendingTask.hasPendingTasksObservable.pipe(map((pending) => !pending));
   }
   constructor() {
-    inject2(TracingService, {
+    inject(TracingService, {
       optional: true
     });
   }
@@ -18089,7 +18050,7 @@ var ApplicationRef = class _ApplicationRef {
       subscription.unsubscribe();
     });
   }
-  _injector = inject2(EnvironmentInjector);
+  _injector = inject(EnvironmentInjector);
   _rendererFactory = null;
   get injector() {
     return this._injector;
@@ -24429,12 +24390,12 @@ function trackMicrotaskNotificationForDebugging() {
   }
 }
 var ChangeDetectionSchedulerImpl = class _ChangeDetectionSchedulerImpl {
-  applicationErrorHandler = inject2(INTERNAL_APPLICATION_ERROR_HANDLER);
-  appRef = inject2(ApplicationRef);
-  taskService = inject2(PendingTasksInternal);
-  ngZone = inject2(NgZone);
-  zonelessEnabled = inject2(ZONELESS_ENABLED);
-  tracing = inject2(TracingService, {
+  applicationErrorHandler = inject(INTERNAL_APPLICATION_ERROR_HANDLER);
+  appRef = inject(ApplicationRef);
+  taskService = inject(PendingTasksInternal);
+  ngZone = inject(NgZone);
+  zonelessEnabled = inject(ZONELESS_ENABLED);
+  tracing = inject(TracingService, {
     optional: true
   });
   zoneIsDefined = typeof Zone !== "undefined" && !!Zone.root.run;
@@ -24445,7 +24406,7 @@ var ChangeDetectionSchedulerImpl = class _ChangeDetectionSchedulerImpl {
   }];
   subscriptions = new Subscription();
   angularZoneId = this.zoneIsDefined ? this.ngZone._inner?.get(angularZoneInstanceIdProperty) : null;
-  scheduleInRootZone = !this.zonelessEnabled && this.zoneIsDefined && (inject2(SCHEDULE_IN_ROOT_ZONE, {
+  scheduleInRootZone = !this.zonelessEnabled && this.zoneIsDefined && (inject(SCHEDULE_IN_ROOT_ZONE, {
     optional: true
   }) ?? false);
   cancelScheduledCallback = null;
@@ -24639,7 +24600,7 @@ function getGlobalLocale() {
   }
 }
 var LOCALE_ID = new InjectionToken(typeof ngDevMode !== "undefined" && ngDevMode ? "LocaleId" : "", {
-  factory: () => inject2(LOCALE_ID, {
+  factory: () => inject(LOCALE_ID, {
     optional: true,
     skipSelf: true
   }) || getGlobalLocale()
@@ -24975,10 +24936,10 @@ function getDebugNode(nativeNode) {
 var OutputEmitterRef = class {
   destroyed = false;
   listeners = null;
-  errorHandler = inject2(ErrorHandler, {
+  errorHandler = inject(ErrorHandler, {
     optional: true
   });
-  destroyRef = inject2(DestroyRef);
+  destroyRef = inject(DestroyRef);
   constructor() {
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
@@ -25060,7 +25021,7 @@ function resource(options) {
   }
   const oldNameForParams = options.request;
   const params = options.params ?? oldNameForParams ?? (() => null);
-  return new ResourceImpl(params, getLoader(options), options.defaultValue, options.equal ? wrapEqualityFn(options.equal) : void 0, options.debugName, options.injector ?? inject2(Injector));
+  return new ResourceImpl(params, getLoader(options), options.defaultValue, options.equal ? wrapEqualityFn(options.equal) : void 0, options.debugName, options.injector ?? inject(Injector));
 }
 var BaseWritableResource = class {
   value;
@@ -26310,10 +26271,10 @@ function _lastDefined(args) {
   return void 0;
 }
 var NgZoneChangeDetectionScheduler = class _NgZoneChangeDetectionScheduler {
-  zone = inject2(NgZone);
-  changeDetectionScheduler = inject2(ChangeDetectionScheduler);
-  applicationRef = inject2(ApplicationRef);
-  applicationErrorHandler = inject2(INTERNAL_APPLICATION_ERROR_HANDLER);
+  zone = inject(NgZone);
+  changeDetectionScheduler = inject(ChangeDetectionScheduler);
+  applicationRef = inject(ApplicationRef);
+  applicationErrorHandler = inject(INTERNAL_APPLICATION_ERROR_HANDLER);
   _onMicrotaskEmptySubscription;
   initialize() {
     if (this._onMicrotaskEmptySubscription) {
@@ -26375,7 +26336,7 @@ function internalProvideZoneChangeDetection({
     provide: ENVIRONMENT_INITIALIZER,
     multi: true,
     useFactory: () => {
-      const ngZoneChangeDetectionScheduler = inject2(NgZoneChangeDetectionScheduler, {
+      const ngZoneChangeDetectionScheduler = inject(NgZoneChangeDetectionScheduler, {
         optional: true
       });
       if ((typeof ngDevMode === "undefined" || ngDevMode) && ngZoneChangeDetectionScheduler === null) {
@@ -26387,7 +26348,7 @@ function internalProvideZoneChangeDetection({
     provide: ENVIRONMENT_INITIALIZER,
     multi: true,
     useFactory: () => {
-      const service = inject2(ZoneStablePendingTask);
+      const service = inject(ZoneStablePendingTask);
       return () => {
         service.initialize();
       };
@@ -26425,8 +26386,8 @@ function getNgZoneOptions(options) {
 var ZoneStablePendingTask = class _ZoneStablePendingTask {
   subscription = new Subscription();
   initialized = false;
-  zone = inject2(NgZone);
-  pendingTasks = inject2(PendingTasksInternal);
+  zone = inject(NgZone);
+  pendingTasks = inject(PendingTasksInternal);
   initialize() {
     if (this.initialized) {
       return;
@@ -26477,7 +26438,7 @@ var OVERSIZED_IMAGE_TOLERANCE = 1200;
 var ImagePerformanceWarning = class _ImagePerformanceWarning {
   window = null;
   observer = null;
-  options = inject2(IMAGE_CONFIG);
+  options = inject(IMAGE_CONFIG);
   lcpImageUrl;
   start() {
     if (typeof PerformanceObserver === "undefined" || this.options?.disableImageSizeWarning && this.options?.disableImageLazyLoadWarning) {
@@ -26866,10 +26827,10 @@ function runPlatformInitializers(injector) {
 }
 function exhaustiveCheckNoChangesInterval(interval2) {
   return provideEnvironmentInitializer(() => {
-    const applicationRef = inject2(ApplicationRef);
-    const errorHandler = inject2(ErrorHandler);
-    const scheduler = inject2(ChangeDetectionSchedulerImpl);
-    const ngZone = inject2(NgZone);
+    const applicationRef = inject(ApplicationRef);
+    const errorHandler = inject(ErrorHandler);
+    const scheduler = inject(ChangeDetectionSchedulerImpl);
+    const ngZone = inject(NgZone);
     function scheduleCheckNoChanges() {
       ngZone.runOutsideAngular(() => {
         setTimeout(() => {
@@ -26919,7 +26880,7 @@ function withEventReplay() {
     useFactory: () => {
       let isEnabled = true;
       if (true) {
-        const appId = inject2(APP_ID);
+        const appId = inject(APP_ID);
         isEnabled = !!window._ejsas?.[appId];
       }
       if (isEnabled) {
@@ -26932,12 +26893,12 @@ function withEventReplay() {
     providers.push({
       provide: ENVIRONMENT_INITIALIZER,
       useValue: () => {
-        const appRef = inject2(ApplicationRef);
+        const appRef = inject(ApplicationRef);
         const {
           injector
         } = appRef;
         if (!appsWithEventReplay.has(appRef)) {
-          const jsActionMap = inject2(JSACTION_BLOCK_ELEMENT_MAP);
+          const jsActionMap = inject(JSACTION_BLOCK_ELEMENT_MAP);
           if (shouldEnableEventReplay(injector)) {
             enableStashEventListenerImpl();
             const appId = injector.get(APP_ID);
@@ -26954,7 +26915,7 @@ function withEventReplay() {
     }, {
       provide: APP_BOOTSTRAP_LISTENER,
       useFactory: () => {
-        const appRef = inject2(ApplicationRef);
+        const appRef = inject(ApplicationRef);
         const {
           injector
         } = appRef;
@@ -27145,7 +27106,7 @@ function withDomHydration() {
     useFactory: () => {
       let isEnabled = true;
       if (true) {
-        const transferState = inject2(TransferState, {
+        const transferState = inject(TransferState, {
           optional: true
         });
         isEnabled = !!transferState?.get(NGH_DATA_KEY, null);
@@ -27162,12 +27123,12 @@ function withDomHydration() {
       if (false) {
         return;
       }
-      const doc = inject2(DOCUMENT);
-      if (inject2(IS_HYDRATION_DOM_REUSE_ENABLED)) {
+      const doc = inject(DOCUMENT);
+      if (inject(IS_HYDRATION_DOM_REUSE_ENABLED)) {
         verifySsrContentsIntegrity(doc);
         enableHydrationRuntimeSupport();
       } else if (typeof ngDevMode !== "undefined" && ngDevMode && !isClientRenderModeEnabled(doc)) {
-        const console2 = inject2(Console);
+        const console2 = inject(Console);
         const message = formatRuntimeError(-505, "Angular hydration was requested on the client, but there was no serialized information present in the server response, thus hydration was not enabled. Make sure the `provideClientHydration()` is included into the list of providers in the server part of the application configuration.");
         console2.warn(message);
       }
@@ -27178,13 +27139,13 @@ function withDomHydration() {
     providers.push({
       provide: PRESERVE_HOST_CONTENT,
       useFactory: () => {
-        return inject2(IS_HYDRATION_DOM_REUSE_ENABLED);
+        return inject(IS_HYDRATION_DOM_REUSE_ENABLED);
       }
     }, {
       provide: APP_BOOTSTRAP_LISTENER,
       useFactory: () => {
-        if (inject2(IS_HYDRATION_DOM_REUSE_ENABLED)) {
-          const appRef = inject2(ApplicationRef);
+        if (inject(IS_HYDRATION_DOM_REUSE_ENABLED)) {
+          const appRef = inject(ApplicationRef);
           return () => {
             whenStableWithTimeout(appRef).then(() => {
               if (appRef.destroyed) {
@@ -27209,11 +27170,11 @@ function withDomHydration() {
 function withI18nSupport() {
   return [{
     provide: IS_I18N_HYDRATION_ENABLED,
-    useFactory: () => inject2(IS_HYDRATION_DOM_REUSE_ENABLED)
+    useFactory: () => inject(IS_HYDRATION_DOM_REUSE_ENABLED)
   }, {
     provide: ENVIRONMENT_INITIALIZER,
     useValue: () => {
-      if (inject2(IS_HYDRATION_DOM_REUSE_ENABLED)) {
+      if (inject(IS_HYDRATION_DOM_REUSE_ENABLED)) {
         enableI18nHydrationRuntimeSupport();
         setIsI18nHydrationSupportEnabled(true);
         performanceMarkFeature("NgI18nHydration");
@@ -27241,8 +27202,8 @@ function withIncrementalHydration() {
     providers.push({
       provide: APP_BOOTSTRAP_LISTENER,
       useFactory: () => {
-        const injector = inject2(Injector);
-        const doc = inject2(DOCUMENT);
+        const injector = inject(Injector);
+        const doc = inject(DOCUMENT);
         return () => {
           const deferBlockData = processBlockData(injector);
           const commentsByBlockId = gatherDeferBlocksCommentNodes(doc, doc.body);
@@ -27281,8 +27242,8 @@ function provideStabilityDebugging() {
     if (typeof ngDevMode === "undefined" || !ngDevMode) {
       console.warn("Stability debugging utility was provided in production mode. This will cause debug code to be included in production bundles. If this is intentional because you are debugging stability issues in a production environment, you can ignore this warning.");
     }
-    const ngZone = inject2(NgZone);
-    const applicationRef = inject2(ApplicationRef);
+    const ngZone = inject(NgZone);
+    const applicationRef = inject(ApplicationRef);
     let _taskTrackingZone = null;
     if (typeof Zone !== "undefined") {
       ngZone.run(() => {
@@ -28035,7 +27996,7 @@ var IterableDiffers = class _IterableDiffers {
     return {
       provide: _IterableDiffers,
       useFactory: () => {
-        const parent = inject2(_IterableDiffers, {
+        const parent = inject(_IterableDiffers, {
           optional: true,
           skipSelf: true
         });
@@ -28079,7 +28040,7 @@ var KeyValueDiffers = class _KeyValueDiffers {
     return {
       provide: _KeyValueDiffers,
       useFactory: () => {
-        const parent = inject2(_KeyValueDiffers, {
+        const parent = inject(_KeyValueDiffers, {
           optional: true,
           skipSelf: true
         });
@@ -28806,7 +28767,7 @@ function afterRenderEffect(callbackOrSpec, options) {
   if (false) {
     return NOOP_AFTER_RENDER_REF;
   }
-  const injector = options?.injector ?? inject2(Injector);
+  const injector = options?.injector ?? inject(Injector);
   const scheduler = injector.get(ChangeDetectionScheduler);
   const manager = injector.get(AfterRenderManager);
   const tracing = injector.get(TracingService, null, {
@@ -28908,9 +28869,6 @@ var REQUEST_CONTEXT = new InjectionToken(typeof ngDevMode === "undefined" || ngD
 });
 
 export {
-  __spreadValues,
-  __spreadProps,
-  __objRest,
   SIGNAL,
   Subscription,
   pipe,
@@ -28941,7 +28899,6 @@ export {
   switchMap,
   takeUntil,
   tap,
-  setCurrentInjector,
   setAlternateWeakRefImpl,
   Version,
   VERSION,
@@ -28971,7 +28928,7 @@ export {
   isStandalone,
   ɵɵinject,
   ɵɵinvalidFactoryDep,
-  inject2 as inject,
+  inject,
   convertToBitFlags,
   ENVIRONMENT_INITIALIZER,
   INJECTOR$1,
@@ -29443,4 +29400,4 @@ export {
   RESPONSE_INIT,
   REQUEST_CONTEXT
 };
-//# sourceMappingURL=chunk-VRAJM4OB.js.map
+//# sourceMappingURL=chunk-GXDYNS2R.js.map

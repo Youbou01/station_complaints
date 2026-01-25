@@ -2,14 +2,17 @@ import { Component, effect, inject, signal } from '@angular/core';
 import { LoginData, loginInitialData, loginSchema } from '../../models/auth';
 import { form, FormField } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth-service';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 @Component({
   selector: 'app-login-form',
-  imports: [FormField,RouterLink],
+  imports: [FormField,RouterLink,FormsModule,ReactiveFormsModule],
   templateUrl: './login-form.html',
   styleUrl: './login-form.css',
 })
 export class LoginForm {
   private router = inject(Router);
+  private authService:AuthService=inject(AuthService);
 
   // Form model and schema
   loginModel = signal<LoginData>(loginInitialData);
@@ -18,21 +21,30 @@ export class LoginForm {
   // UI State
   showPassword = signal(false);
   isLoading = signal(false);
+  errorMessage = signal<string>('');
+  
 
   togglePassword() {
     this.showPassword.update((v) => !v);
   }
 
-  onSubmit() {
+  async onSubmit() {
     if (this.loginForm().invalid()) return;
 
     this.isLoading.set(true);
+    this.errorMessage.set('');
+    
+    const { email, password } = this.loginModel();
 
-    // TODO: Call auth service
     console.log('Login attempt:', this.loginModel());
-    setTimeout(() => {
+    
+    try {
+      await this.authService.login(email, password);
+      this.router.navigate(['/dashboard']);
+    } catch (error) {
+      this.errorMessage.set(error as string);
+    } finally {
       this.isLoading.set(false);
-      // TODO: Navigate to dashboard after real login
-    }, 1500);
+    }
   }
 }
