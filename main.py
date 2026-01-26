@@ -11,7 +11,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from database import engine, get_db
-from models import Base, Complaint, User
+from models import Base, Complaint, User,Station
 from schemas import (
     UserCreate,
     UserResponse,
@@ -19,6 +19,10 @@ from schemas import (
     ComplaintCreate,
     ComplaintStatusUpdate,
     ComplaintResponse,
+    StationCreate,
+    StationUpdate,
+    StationResponse,
+    AssignManagerRequest,
 )
 from security import hash_password, verify_password
 from auth import create_access_token
@@ -399,3 +403,185 @@ def delete_user(
     db.commit()
     
     return {"message": "User deleted successfully"}
+
+# ============== STATIONS ==============
+
+@app.post("/stations", response_model=StationResponse, tags=["Stations"])
+def create_station(
+    station: StationCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))
+):
+    """
+    Create a new station. Admin only.
+    """
+    # Check if code already exists
+    existing = db.query(Station).filter(Station.code == station.code).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Station code already exists"
+        )
+
+    db_station = Station(
+        name=station.name,
+        code=station.code,
+        address=station.address,
+        governorate=station.governorate
+    )
+    db.add(db_station)
+    db.commit()
+    db.refresh(db_station)
+
+    return db_station
+
+
+@app.get("/stations", response_model=list[StationResponse], tags=["Stations"])
+def get_stations(
+    governorate: str | None = None,
+    is_active: bool | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get all stations. Any logged-in user can view.
+    """
+    query = db.query(Station)
+
+    if governorate:
+        query = query.filter(Station.governorate == governorate)
+
+    if is_active is not None:
+        query = query.filter(Station.is_active == is_active)
+
+    return query.all()
+
+
+@app.get("/stations/{station_id}", response_model=StationResponse, tags=["Stations"])
+def get_station(
+    station_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get a specific station by ID.
+    """
+    station = db.query(Station).filter(Station.id == station_id).first()
+
+    if not station:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Station not found"
+        )
+
+    return station
+
+
+@app.put("/stations/{station_id}", response_model=StationResponse, tags=["Stations"])
+def update_station(
+    station_id: int,
+    station_update: StationUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))
+):
+    """
+    Update a station. Admin only.
+    """
+    station = db.query(Station).filter(Station.id == station_id).first()
+
+    if not station:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Station not found"
+        )
+
+    # Update only provided fields
+    if station_update.name is not None:
+        station.name = station_update.name
+    if station_update.address is not None:
+        station.address = station_update.address
+    if station_update.governorate is not None:
+        station.governorate = station_update.governorate
+    if station_update.is_active is not None:
+        station.is_active = station_update.is_active
+
+    db.commit()
+    db.refresh(station)
+
+    return station
+
+
+@app.delete("/stations/{station_id}", tags=["Stations"])
+def delete_station(
+    station_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))
+):
+    """
+    Delete a station. Admin only.
+    """
+    station = db.query(Station).filter(Station.id == station_id).first()
+
+    if not station:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Station not found"
+        )
+
+    db.delete(station)
+    db.commit()
+
+    return {"message": "Station deleted successfully"}
+
+
+@app.put("/stations/{station_id}/manager", response_model=StationResponse, tags=["Stations"])
+def assign_manager(
+    station_id: int,
+    request: AssignManagerRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))
+):
+    """
+    Assign or unassign a manager to a station. Admin only.
+    """
+    station = db.query(Station).filter(Station.id == station_id).first()
+
+    if not station:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Station not found"
+        )
+
+    if request.manager_id is not None:
+        # Verify manager exists and has manager role
+        manager = db.query(User).filter(User.id == request.manager_id).first()
+
+        if not manager:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        if manager.role != "manager":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User is not a manager"
+            )
+
+        # Check if manager is already assigned to another station
+        existing_station = db.query(Station).filter(
+            Station.manager_id == request.manager_id,
+            Station.id != station_id
+        ).first()
+
+        if existing_station:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Manager is already assigned to station: {existing_station.name}"
+            )
+
+    station.manager_id = request.manager_id
+    db.commit()
+    db.refresh(station)
+
+    return station

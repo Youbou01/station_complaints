@@ -72,3 +72,39 @@ class ComplaintResponse(BaseModel):
 
 # With from_attributes:
 #return UserResponse.from_orm(user)  # Automatic!
+
+# ============== STATION SCHEMAS ==============
+
+class StationCreate(BaseModel):
+    """Schema for creating a new station."""
+    name: str = Field(min_length=2)
+    code: str = Field(min_length=3)
+    address: str | None = None
+    governorate: str = Field(min_length=2)
+
+
+class StationUpdate(BaseModel):
+    """Schema for updating a station."""
+    name: str | None = None
+    address: str | None = None
+    governorate: str | None = None
+    is_active: bool | None = None
+
+
+class StationResponse(BaseModel):
+    """Schema for station data in responses."""
+    id: int
+    name: str
+    code: str
+    address: str | None
+    governorate: str
+    is_active: bool
+    manager_id: int | None
+
+    class Config:
+        from_attributes = True
+
+
+class AssignManagerRequest(BaseModel):
+    """Schema for assigning a manager to a station."""
+    manager_id: int | None  # None to unassign
