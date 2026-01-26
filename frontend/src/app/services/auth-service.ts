@@ -30,57 +30,101 @@ export class AuthService {
 
   private apiUrl = 'http://localhost:8000';
 
-  // Current user state
   currentUser = signal<UserResponse | null>(null);
   isLoggedIn = signal<boolean>(false);
+  isInitialized = signal<boolean>(false); // Track if auth check is complete
 
   constructor() {
-    // Check if user is already logged in on app start
-    this.checkToken();
+    this.initializeAuth();
   }
-  getToken(): string | null {
-    return localStorage.getItem('access_token');
+
+  private async initializeAuth(): Promise<void> {
+    const token = this.getToken();
+    
+    if (token) {
+      try {
+        await this.fetchCurrentUser();
+        this.isLoggedIn.set(true);
+      } catch {
+        this.removeToken();
+        this.isLoggedIn.set(false);
+      }
+    }
+    
+    this.isInitialized.set(true);
   }
+
   private saveToken(token: string): void {
     localStorage.setItem('access_token', token);
   }
+
+  getToken(): string | null {
+    return localStorage.getItem('access_token');
+  }
+
   private removeToken(): void {
     localStorage.removeItem('access_token');
   }
-  private checkToken(): void {
-    const token = this.getToken();
-    if (token) {
-      this.isLoggedIn.set(true);
-      this.fetchCurrentUser();
-    }
-  }
 
-  // ============== API CALLS ==============
-
-  login(email: string, password: string): Promise<boolean> {
-    // FastAPI expects form data for OAuth2, not JSON
+  login(email: string, password: string): Promise<UserResponse> {
     const formData = new FormData();
-    formData.append('username', email); // FastAPI OAuth2 uses 'username' field
+    formData.append('username', email);
     formData.append('password', password);
 
     return new Promise((resolve, reject) => {
-      this.http.post<LoginResponse>(`${this.apiUrl}/login`, formData)
-        .subscribe({
-          next: (response) => {
-            this.saveToken(response.access_token);
-            this.isLoggedIn.set(true);
-            this.fetchCurrentUser();
-            resolve(true);
-          },
-          error: (error) => {
-            console.error('Login failed:', error);
-            reject(error.error?.detail || 'Login failed');
+      this.http.post<LoginResponse>(`${this.apiUrl}/login`, formData).subscribe({
+        next: async (response) => {
+          this.saveToken(response.access_token);
+          this.isLoggedIn.set(true);
+          
+          try {
+            const user = await this.fetchCurrentUser();
+            resolve(user);
+          } catch (error) {
+            reject(error);
           }
-        });
+        },
+        error: (error) => {
+          reject(error.error?.detail || 'Login failed');
+        }
+      });
     });
   }
 
-  // signUp(email: string, password: string, role: string): Promise<boolean> {
+  register(email: string, password: string, role: string): Promise<boolean> {
+    const body: RegisterRequest = { email, password, role };
+
+    return new Promise((resolve, reject) => {
+      this.http.post<UserResponse>(`${this.apiUrl}/register`, body).subscribe({
+        next: () => resolve(true),
+        error: (error) => reject(error.error?.detail || 'Registration failed')
+      });
+    });
+  }
+
+  fetchCurrentUser(): Promise<UserResponse> {
+    return new Promise((resolve, reject) => {
+      this.http.get<UserResponse>(`${this.apiUrl}/me`).subscribe({
+        next: (user) => {
+          this.currentUser.set(user);
+          resolve(user);
+        },
+        error: (error) => {
+          this.logout();
+          reject(error.error?.detail || 'Failed to fetch user');
+        }
+      });
+    });
+  }
+
+  logout(): void {
+    this.removeToken();
+    this.currentUser.set(null);
+    this.isLoggedIn.set(false);
+    this.router.navigate(['/auth/login']);
+  }
+}
+// signUp(email: string, password: string, role: string): Promise<boolean> {
   //   const body: RegisterRequest = { email, password, role };
 
   //   return new Promise((resolve, reject) => {
@@ -96,39 +140,3 @@ export class AuthService {
   //       });
   //   });
   // }
-  register(email: string, password: string, role: string): Promise<boolean> {
-    const body: RegisterRequest = { email, password, role };
-
-    return new Promise((resolve, reject) => {
-      this.http.post<UserResponse>(`${this.apiUrl}/register`, body)
-        .subscribe({
-          next: () => {
-            resolve(true);
-          },
-          error: (error) => {
-            console.error('Registration failed:', error);
-            reject(error.error?.detail || 'Registration failed');
-          }
-        });
-    });
-  }
-  fetchCurrentUser(): void {
-    this.http.get<UserResponse>(`${this.apiUrl}/me`)
-      .subscribe({
-        next: (user) => {
-          this.currentUser.set(user);
-        },
-        error: (error) => {
-          console.error('Failed to fetch user:', error);
-          this.logout();
-        }
-      });
-  }
-
-  logout(): void {
-    this.removeToken();
-    this.currentUser.set(null);
-    this.isLoggedIn.set(false);
-    this.router.navigate(['/auth/login']);
-  }
-}

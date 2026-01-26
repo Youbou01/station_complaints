@@ -1,0 +1,68 @@
+<div class="stations-page">
+  <div class="page-header">
+    <h1 class="page-title">Stations</h1>
+    <a routerLink="/admin/stations/new" class="add-btn">+ Add Station</a>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  @if (stationsService.isLoading()) {
+    <div class="loading">Loading stations...</div>
+  } @else if (stationsService.stations().length === 0) {
+    <div class="empty-state">
+      <p>No stations found.</p>
+      <a routerLink="/admin/stations/new" class="add-btn">Create your first station</a>
+    </div>
+  } @else {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Governorate</th>
+            <th>Manager</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (station of stationsService.stations(); track station.id) {
+            <tr>
+              <td class="code-cell">{{ station.code }}</td>
+              <td>{{ station.name }}</td>
+              <td>{{ station.governorate }}</td>
+              <td class="manager-cell">{{ getManagerEmail(station.manager_id) }}</td>
+              <td>
+                <span class="status-badge" [class.active]="station.is_active" [class.inactive]="!station.is_active">
+                  {{ station.is_active ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                <a [routerLink]="['/admin/stations', station.id, 'edit']" class="action-btn edit">Edit</a>
+                <button (click)="confirmDelete(station)" class="action-btn delete">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal()) {
+  <div class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Delete Station</h2>
+      <p>Are you sure you want to delete <strong>{{ stationToDelete()?.name }}</strong>?</p>
+      <p class="warning-text">This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button (click)="cancelDelete()" class="btn-cancel">Cancel</button>
+        <button (click)="deleteStation()" class="btn-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+}

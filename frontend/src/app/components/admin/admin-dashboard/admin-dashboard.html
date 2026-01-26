@@ -1,0 +1,37 @@
+<div class="dashboard">
+  <h1 class="page-title">Dashboard</h1>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon"></div>
+      <div class="stat-content">
+        <span class="stat-value">{{ totalStations }}</span>
+        <span class="stat-label">Total Stations</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon"></div>
+      <div class="stat-content">
+        <span class="stat-value">{{ activeStations }}</span>
+        <span class="stat-label">Active Stations</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon"></div>
+      <div class="stat-content">
+        <span class="stat-value">{{ totalUsers }}</span>
+        <span class="stat-label">Total Users</span>
+      </div>
+    </div>
+
+    <div class="stat-card warning">
+      <div class="stat-icon"></div>
+      <div class="stat-content">
+        <span class="stat-value">{{ pendingUsers }}</span>
+        <span class="stat-label">Pending Approvals</span>
+      </div>
+    </div>
+  </div>
+</div>

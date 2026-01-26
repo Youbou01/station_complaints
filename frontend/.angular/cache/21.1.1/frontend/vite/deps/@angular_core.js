@@ -289,6 +289,7 @@ import {
   setAlternateWeakRefImpl,
   setClassMetadata,
   setClassMetadataAsync,
+  setCurrentInjector,
   setDocument,
   setInjectorProfilerContext,
   setLocaleId,
@@ -500,10 +501,7 @@ import {
   ɵɵvalidateAttribute,
   ɵɵviewQuery,
   ɵɵviewQuerySignal
-} from "./chunk-GXDYNS2R.js";
-import {
-  setCurrentInjector
-} from "./chunk-LO7XNRLQ.js";
+} from "./chunk-VRAJM4OB.js";
 export {
   ANIMATION_MODULE_TYPE,
   APP_BOOTSTRAP_LISTENER,

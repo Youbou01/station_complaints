@@ -12,17 +12,14 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 })
 export class LoginForm {
   private router = inject(Router);
-  private authService:AuthService=inject(AuthService);
+  private authService = inject(AuthService);
 
-  // Form model and schema
   loginModel = signal<LoginData>(loginInitialData);
   loginForm = form(this.loginModel, loginSchema);
 
-  // UI State
   showPassword = signal(false);
   isLoading = signal(false);
   errorMessage = signal<string>('');
-  
 
   togglePassword() {
     this.showPassword.update((v) => !v);
@@ -33,14 +30,17 @@ export class LoginForm {
 
     this.isLoading.set(true);
     this.errorMessage.set('');
-    
+
     const { email, password } = this.loginModel();
 
-    console.log('Login attempt:', this.loginModel());
-    
     try {
-      await this.authService.login(email, password);
-      this.router.navigate(['/dashboard']);
+      const user = await this.authService.login(email, password);
+      
+      if (user.role === 'administrator') {
+        this.router.navigate(['/admin']);
+      } else {
+        this.router.navigate(['/dashboard']);
+      }
     } catch (error) {
       this.errorMessage.set(error as string);
     } finally {

@@ -1,0 +1,135 @@
+<div class="form-page">
+  <h1 class="page-title">{{ isEditMode() ? 'Edit Station' : 'New Station' }}</h1>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  <div class="form-card">
+    <form (ngSubmit)="onSubmit()">
+      <!-- Code & Name Row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Station Code *</label>
+          <input
+            type="text"
+            [formField]="stationForm.code"
+            placeholder="e.g., TUN-001"
+            class="form-input"
+          />
+          @if (stationForm.code().invalid() && stationForm.code().touched()) {
+            <div class="form-error">
+              @for (error of stationForm.code().errors(); track error.kind) {
+                <span>{{ error.message }}</span>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Station Name *</label>
+          <input
+            type="text"
+            [formField]="stationForm.name"
+            placeholder="Station name"
+            class="form-input"
+          />
+          @if (stationForm.name().invalid() && stationForm.name().touched()) {
+            <div class="form-error">
+              @for (error of stationForm.name().errors(); track error.kind) {
+                <span>{{ error.message }}</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Address -->
+      <div class="form-group">
+        <label>Address</label>
+        <input
+          type="text"
+          [formField]="stationForm.address"
+          placeholder="Full address"
+          class="form-input"
+        />
+      </div>
+
+      <!-- Governorate Selection -->
+      <div class="form-group">
+        <label>Governorate *</label>
+        <div class="select-grid">
+          @for (gov of governorates; track gov) {
+            <button
+              type="button"
+              (click)="selectGovernorate(gov)"
+              class="select-btn"
+              [class.selected]="stationModel().governorate === gov"
+            >
+              {{ gov }}
+            </button>
+          }
+        </div>
+        @if (stationForm.governorate().invalid() && stationForm.governorate().touched()) {
+          <div class="form-error">Please select a governorate</div>
+        }
+      </div>
+
+      <!-- Manager Selection (Edit mode only) -->
+      @if (isEditMode()) {
+        <div class="form-group">
+          <label>Manager</label>
+          <div class="manager-options">
+            <button
+              type="button"
+              (click)="selectManager(null)"
+              class="manager-btn"
+              [class.selected]="stationModel().managerId === null"
+            >
+              Not assigned
+            </button>
+            @for (manager of managers; track manager.id) {
+              <button
+                type="button"
+                (click)="selectManager(manager.id)"
+                class="manager-btn"
+                [class.selected]="stationModel().managerId === manager.id"
+              >
+                {{ manager.email }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Active Toggle -->
+        <div class="form-group">
+          <button
+            type="button"
+            (click)="toggleActive()"
+            class="toggle-btn"
+            [class.active]="stationModel().isActive"
+          >
+            <span class="toggle-indicator"></span>
+            <span>{{ stationModel().isActive ? 'Active' : 'Inactive' }}</span>
+          </button>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" (click)="cancel()" class="btn-cancel">Cancel</button>
+        <button
+          type="submit"
+          [disabled]="stationForm().invalid() || isLoading()"
+          class="btn-submit"
+        >
+          @if (isLoading()) {
+            Saving...
+          } @else {
+            {{ isEditMode() ? 'Save Changes' : 'Create Station' }}
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

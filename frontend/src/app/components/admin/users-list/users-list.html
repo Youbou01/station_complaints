@@ -1,0 +1,46 @@
+<div class="users-page">
+  <h1 class="page-title">Users</h1>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  @if (usersService.isLoading()) {
+    <div class="loading">Loading users...</div>
+  } @else {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of usersService.users(); track user.id) {
+            <tr>
+              <td>{{ user.email }}</td>
+              <td>
+                <span class="role-badge">{{ user.role }}</span>
+              </td>
+              <td>
+                <span class="status-badge" [class.active]="user.is_active" [class.pending]="!user.is_active">
+                  {{ user.is_active ? 'Active' : 'Pending' }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                @if (!user.is_active) {
+                  <button (click)="activateUser(user)" class="action-btn approve">Approve</button>
+                } @else {
+                  <button (click)="deactivateUser(user)" class="action-btn deactivate">Deactivate</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

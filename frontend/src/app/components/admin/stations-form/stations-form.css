@@ -1,0 +1,218 @@
+.form-page {
+  max-width: 800px;
+}
+
+.page-title {
+  font-size: 24px;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+}
+
+.error-banner {
+  background-color: rgba(227, 30, 36, 0.1);
+  border: 1px solid #E31E24;
+  color: #E31E24;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.form-card {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #1a1a1a;
+  background-color: #ffffff;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #F7C600;
+}
+
+.form-input:disabled {
+  background-color: #f3f4f6;
+  color: #6b6b6b;
+}
+
+.form-error {
+  color: #E31E24;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+/* Governorate Grid */
+.select-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.select-btn {
+  padding: 10px 12px;
+  background-color: #f3f4f6;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.select-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.select-btn.selected {
+  background-color: rgba(247, 198, 0, 0.1);
+  border-color: #F7C600;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* Manager Options */
+.manager-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.manager-btn {
+  padding: 10px 16px;
+  background-color: #f3f4f6;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.manager-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.manager-btn.selected {
+  background-color: rgba(247, 198, 0, 0.1);
+  border-color: #F7C600;
+  font-weight: 600;
+}
+
+/* Toggle Button */
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background-color: #f3f4f6;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #6b6b6b;
+}
+
+.toggle-btn.active {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.toggle-indicator {
+  width: 40px;
+  height: 22px;
+  background-color: #d1d5db;
+  border-radius: 11px;
+  position: relative;
+  transition: background-color 0.2s;
+}
+
+.toggle-indicator::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.toggle-btn.active .toggle-indicator {
+  background-color: #22c55e;
+}
+
+.toggle-btn.active .toggle-indicator::after {
+  transform: translateX(18px);
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-cancel {
+  padding: 12px 24px;
+  background-color: #e5e7eb;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  color: #1a1a1a;
+}
+
+.btn-cancel:hover {
+  background-color: #d1d5db;
+}
+
+.btn-submit {
+  padding: 12px 24px;
+  background-color: #F7C600;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.btn-submit:hover {
+  background-color: #e0b400;
+}
+
+.btn-submit:disabled {
+  background-color: #e5e7eb;
+  color: #6b6b6b;
+  cursor: not-allowed;
+}
