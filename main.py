@@ -9,16 +9,20 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from database import engine, get_db
-from models import Base, Complaint, User,Station
+from models import Base, Complaint, User, Station
 from schemas import (
     UserCreate,
     UserResponse,
     TokenResponse,
     ComplaintCreate,
+    ComplaintUpdate,
+    ComplaintAssign,
     ComplaintStatusUpdate,
     ComplaintResponse,
+    ComplaintDetailResponse,
     StationCreate,
     StationUpdate,
     StationResponse,
@@ -175,12 +179,25 @@ def create_complaint(
 ):
     """
     Create a new complaint. Only managers can do this.
+    Complaint is automatically linked to the manager's station.
     """
+    # Get manager's station
+    station = db.query(Station).filter(Station.manager_id == current_user.id).first()
+    
+    if not station:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You are not assigned to any station"
+        )
+    
     db_complaint = Complaint(
-        station_id=complaint.station_id,
-        type=complaint.type.value,
+        title=complaint.title,
         description=complaint.description,
-        severity=complaint.severity
+        type=complaint.type.value,
+        severity=complaint.severity,
+        station_id=station.id,
+        created_by_id=current_user.id,
+        status="open"
     )
 
     db.add(db_complaint)
@@ -192,107 +209,278 @@ def create_complaint(
 
 @app.get("/complaints", response_model=list[ComplaintResponse], tags=["Complaints"])
 def get_complaints(
-    complaint_status: ComplaintStatusEnum | None = None,
+    status_filter: ComplaintStatusEnum | None = None,
+    type_filter: ComplaintTypeEnum | None = None,
     station_id: int | None = None,
-    complaint_type: ComplaintTypeEnum | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles("assistant", "director"))
+    current_user: User = Depends(get_current_user)
 ):
     """
-    Get all complaints with optional filters.
-    Only assistants and directors can view complaints.
+    Get complaints based on user role:
+    - Administrator: All complaints
+    - Manager: Only their station's complaints
+    - Assistant: All complaints (they manage workflow)
+    - Intervenant: Only complaints assigned to them
+    - Director: All complaints (for review)
     """
     query = db.query(Complaint)
-    #db.query(Complaint) → SELECT * FROM complaints, .all() fetches everything as python list
-    if complaint_status:
-        query = query.filter(Complaint.status == complaint_status.value)
-
-    if station_id:
-        query = query.filter(Complaint.station_id == station_id)
-
-    if complaint_type:
-        query = query.filter(Complaint.type == complaint_type.value)
     
-    return query.all() #query is sqlalchemy Query object
-#FastAPI automatically converts SQLAlchemy objects → JSON.
+    # Role-based filtering
+    if current_user.role == "manager":
+        station = db.query(Station).filter(Station.manager_id == current_user.id).first()
+        if station:
+            query = query.filter(Complaint.station_id == station.id)
+        else:
+            return []
+    elif current_user.role == "intervenant":
+        query = query.filter(Complaint.assigned_to_id == current_user.id)
+    
+    # Additional filters
+    if status_filter:
+        query = query.filter(Complaint.status == status_filter.value)
+    
+    if type_filter:
+        query = query.filter(Complaint.type == type_filter.value)
+    
+    if station_id and current_user.role in ["administrator", "assistant", "director"]:
+        query = query.filter(Complaint.station_id == station_id)
+    
+    return query.order_by(Complaint.created_at.desc()).all()
 
-@app.get("/complaints/{complaint_id}", response_model=ComplaintResponse, tags=["Complaints"])
-def get_specific_complaint(
+
+@app.get("/complaints/{complaint_id}", response_model=ComplaintDetailResponse, tags=["Complaints"])
+def get_complaint(
     complaint_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user) #  any logged-in user
+    current_user: User = Depends(get_current_user)
 ):
     """
-    Get a specific complaint by ID.
-    Any logged-in user can view a complaint.
+    Get a specific complaint with full details.
     """
     complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
-                                    #→ WHERE id = ?                     returns one row or None
-    if complaint is None:
-        raise HTTPException(status_code=404, detail="Complaint not found")
+    
+    if not complaint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Complaint not found"
+        )
+    
+    # Check access based on role
+    if current_user.role == "manager":
+        station = db.query(Station).filter(Station.manager_id == current_user.id).first()
+        if not station or complaint.station_id != station.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only view complaints from your station"
+            )
+    elif current_user.role == "intervenant":
+        if complaint.assigned_to_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only view complaints assigned to you"
+            )
+    
+    return complaint
 
+
+@app.put("/complaints/{complaint_id}", response_model=ComplaintResponse, tags=["Complaints"])
+def update_complaint(
+    complaint_id: int,
+    complaint_update: ComplaintUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("manager"))
+):
+    """
+    Update a complaint. Only the manager who created it can update.
+    Can only update if status is 'open'.
+    """
+    complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
+    
+    if not complaint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Complaint not found"
+        )
+    
+    if complaint.created_by_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only update complaints you created"
+        )
+    
+    if complaint.status != "open":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Can only update complaints with 'open' status"
+        )
+    
+    if complaint_update.title is not None:
+        complaint.title = complaint_update.title
+    if complaint_update.description is not None:
+        complaint.description = complaint_update.description
+    if complaint_update.type is not None:
+        complaint.type = complaint_update.type.value
+    if complaint_update.severity is not None:
+        complaint.severity = complaint_update.severity
+    
+    db.commit()
+    db.refresh(complaint)
+    
+    return complaint
+
+
+@app.delete("/complaints/{complaint_id}", tags=["Complaints"])
+def delete_complaint(
+    complaint_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("manager", "administrator"))
+):
+    """
+    Delete a complaint. Manager can delete their own, admin can delete any.
+    Can only delete if status is 'open'.
+    """
+    complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
+    
+    if not complaint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Complaint not found"
+        )
+    
+    if current_user.role == "manager" and complaint.created_by_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete complaints you created"
+        )
+    
+    if complaint.status != "open":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Can only delete complaints with 'open' status"
+        )
+    
+    db.delete(complaint)
+    db.commit()
+    
+    return {"message": "Complaint deleted successfully"}
+
+
+@app.put("/complaints/{complaint_id}/assign", response_model=ComplaintResponse, tags=["Complaints"])
+def assign_complaint(
+    complaint_id: int,
+    assignment: ComplaintAssign,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("assistant"))
+):
+    """
+    Assign a complaint to an intervenant. Only assistants can do this.
+    """
+    complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
+    
+    if not complaint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Complaint not found"
+        )
+    
+    if complaint.status not in ["open", "assigned"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Can only assign complaints with 'open' or 'assigned' status"
+        )
+    
+    # Verify the assignee is an intervenant
+    intervenant = db.query(User).filter(User.id == assignment.assigned_to_id).first()
+    
+    if not intervenant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    if intervenant.role != "intervenant":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Can only assign to users with 'intervenant' role"
+        )
+    
+    if not intervenant.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot assign to inactive user"
+        )
+    
+    complaint.assigned_to_id = assignment.assigned_to_id
+    complaint.status = "assigned"
+    
+    db.commit()
+    db.refresh(complaint)
+    
     return complaint
 
 
 @app.put("/complaints/{complaint_id}/status", response_model=ComplaintResponse, tags=["Complaints"])
 def update_complaint_status(
     complaint_id: int,
-    payload: ComplaintStatusUpdate,
+    status_update: ComplaintStatusUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles("intervenant"))
+    current_user: User = Depends(require_roles("intervenant", "assistant"))
 ):
     """
-    Update a complaint's status. Only intervenants can do this.
+    Update complaint status.
+    - Intervenant: Can update their assigned complaints (in_progress, resolved)
+    - Assistant: Can update any complaint (including rejected)
     """
     complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
-
-    if complaint is None:
-        raise HTTPException(status_code=404, detail="Complaint not found")
-
-    complaint.status = payload.status.value
+    
+    if not complaint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Complaint not found"
+        )
+    
+    # Intervenant can only update their own assigned complaints
+    if current_user.role == "intervenant":
+        if complaint.assigned_to_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only update complaints assigned to you"
+            )
+        
+        # Intervenant can only set certain statuses
+        allowed_statuses = ["in_progress", "resolved"]
+        if status_update.status.value not in allowed_statuses:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"You can only set status to: {', '.join(allowed_statuses)}"
+            )
+    
+    complaint.status = status_update.status.value
+    
+    if status_update.resolution_notes:
+        complaint.resolution_notes = status_update.resolution_notes
+    
+    if status_update.status == ComplaintStatusEnum.RESOLVED:
+        complaint.resolved_at = datetime.now()
+    
     db.commit()
     db.refresh(complaint)
-
+    
     return complaint
 
 
-@app.post("/register", response_model=UserResponse, tags=["Authentication"])
-def register(
-    user: UserCreate,
-    db: Session = Depends(get_db)
+@app.get("/intervenants", response_model=list[UserResponse], tags=["Users"])
+def get_intervenants(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("assistant", "administrator"))
 ):
     """
-    Public registration endpoint.
-    Creates a new user with is_active=False (pending approval).
-    Admin must approve before user can login.
+    Get all active intervenants. For assistants to assign complaints.
     """
-    # Check if email already exists
-    existing_user = db.query(User).filter(User.email == user.email).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
-    
-    # Don't allow self-registration as administrator
-    if user.role == RoleEnum.ADMINISTRATOR:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Cannot register as administrator"
-        )
-    
-    hashed = hash_password(user.password)
-    db_user = User(
-        email=user.email,
-        password_hash=hashed,
-        role=user.role.value,
-        is_active=False  # Pending approval!
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    
-    return db_user
+    return db.query(User).filter(
+        User.role == "intervenant",
+        User.is_active == True
+    ).all()
 
 # ============== USER MANAGEMENT (ADMIN) ==============
 

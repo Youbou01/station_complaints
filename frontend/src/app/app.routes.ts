@@ -49,6 +49,14 @@ export const routes: Routes = [
       {
         path: 'users',
         loadComponent: () => import('./components/admin/users-list/users-list').then(m => m.UsersList)
+      },
+      {
+        path: 'complaints',
+        loadComponent: () => import('./components/admin/complaints-list/complaints-list').then(m => m.ComplaintsList)
+      },
+      {
+        path: 'complaints/:id',
+        loadComponent: () => import('./components/admin/complaint-detail/complaint-detail').then(m => m.ComplaintDetailComponent)
       }
     ]
   },

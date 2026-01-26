@@ -2,36 +2,72 @@
   <h1 class="page-title">Dashboard</h1>
 
   <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon"></div>
+    <a routerLink="/admin/stations" class="stat-card clickable">
+      <div class="stat-icon">S</div>
       <div class="stat-content">
         <span class="stat-value">{{ totalStations }}</span>
         <span class="stat-label">Total Stations</span>
       </div>
-    </div>
+    </a>
 
-    <div class="stat-card">
-      <div class="stat-icon"></div>
+    <a routerLink="/admin/stations" class="stat-card clickable">
+      <div class="stat-icon active-icon">A</div>
       <div class="stat-content">
         <span class="stat-value">{{ activeStations }}</span>
         <span class="stat-label">Active Stations</span>
       </div>
-    </div>
+    </a>
 
-    <div class="stat-card">
-      <div class="stat-icon"></div>
+    <a routerLink="/admin/users" class="stat-card clickable">
+      <div class="stat-icon user-icon">U</div>
       <div class="stat-content">
         <span class="stat-value">{{ totalUsers }}</span>
         <span class="stat-label">Total Users</span>
       </div>
-    </div>
+    </a>
 
-    <div class="stat-card warning">
-      <div class="stat-icon"></div>
+    <a routerLink="/admin/users" class="stat-card warning clickable">
+      <div class="stat-icon pending-icon">P</div>
       <div class="stat-content">
         <span class="stat-value">{{ pendingUsers }}</span>
         <span class="stat-label">Pending Approvals</span>
       </div>
-    </div>
+    </a>
+  </div>
+
+  <h2 class="section-title">Complaints Overview</h2>
+
+  <div class="stats-grid">
+    <a routerLink="/admin/complaints" class="stat-card clickable">
+      <div class="stat-icon complaint-icon">C</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ totalComplaints }}</span>
+        <span class="stat-label">Total Complaints</span>
+      </div>
+    </a>
+
+    <a routerLink="/admin/complaints" class="stat-card open clickable">
+      <div class="stat-icon open-icon">O</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ openComplaints }}</span>
+        <span class="stat-label">Open</span>
+      </div>
+    </a>
+
+    <a routerLink="/admin/complaints" class="stat-card progress clickable">
+      <div class="stat-icon progress-icon">I</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ inProgressComplaints }}</span>
+        <span class="stat-label">In Progress</span>
+      </div>
+    </a>
+
+    <a routerLink="/admin/complaints" class="stat-card resolved clickable">
+      <div class="stat-icon resolved-icon">R</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ resolvedComplaints }}</span>
+        <span class="stat-label">Resolved</span>
+      </div>
+    </a>
   </div>
 </div>

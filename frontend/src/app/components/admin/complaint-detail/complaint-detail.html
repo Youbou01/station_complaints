@@ -1,0 +1,168 @@
+<div class="detail-page">
+  <button (click)="goBack()" class="back-btn">Back to Complaints</button>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading">Loading complaint...</div>
+  } @else if (complaint(); as c) {
+    <div class="detail-header">
+      <div class="header-info">
+        <span class="complaint-id">#{{ c.id }}</span>
+        <h1 class="complaint-title">{{ c.title }}</h1>
+      </div>
+      <div class="header-actions">
+        @if (authService.currentUser()?.role === 'assistant' && (c.status === 'open' || c.status === 'assigned')) {
+          <button (click)="openAssignModal()" class="btn-assign">Assign</button>
+        }
+        @if ((authService.currentUser()?.role === 'assistant') || 
+            (authService.currentUser()?.role === 'intervenant' && c.assigned_to_id === authService.currentUser()?.id)) {
+          <button (click)="openStatusModal()" class="btn-status">Update Status</button>
+        }
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-card main-info">
+        <h2>Description</h2>
+        <p class="description">{{ c.description }}</p>
+        
+        @if (c.resolution_notes) {
+          <h2>Resolution Notes</h2>
+          <p class="resolution-notes">{{ c.resolution_notes }}</p>
+        }
+      </div>
+
+      <div class="detail-card">
+        <h2>Details</h2>
+        <div class="info-row">
+          <span class="info-label">Status</span>
+          <span class="status-badge status-{{ c.status }}">{{ getStatusLabel(c.status) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Type</span>
+          <span class="type-badge">{{ getTypeLabel(c.type) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Severity</span>
+          <span class="severity-badge severity-{{ c.severity }}">{{ getSeverityLabel(c.severity) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Created</span>
+          <span>{{ c.created_at | date:'medium' }}</span>
+        </div>
+        @if (c.resolved_at) {
+          <div class="info-row">
+            <span class="info-label">Resolved</span>
+            <span>{{ c.resolved_at | date:'medium' }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="detail-card">
+        <h2>Station</h2>
+        <div class="info-row">
+          <span class="info-label">Name</span>
+          <span>{{ c.station.name }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Code</span>
+          <span class="code">{{ c.station.code }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Governorate</span>
+          <span>{{ c.station.governorate }}</span>
+        </div>
+      </div>
+
+      <div class="detail-card">
+        <h2>People</h2>
+        <div class="info-row">
+          <span class="info-label">Created By</span>
+          <span>{{ c.created_by.email }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Assigned To</span>
+          <span>{{ c.assigned_to?.email || 'Not assigned' }}</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+@if (showAssignModal()) {
+  <div class="modal-overlay" (click)="closeAssignModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Assign Complaint</h2>
+      <p>Select an intervenant to handle this complaint:</p>
+      
+      <div class="option-list">
+        @for (int of intervenants(); track int.id) {
+          <button 
+            (click)="selectIntervenant(int.id)" 
+            class="option-btn"
+            [class.selected]="selectedIntervenantId() === int.id"
+          >
+            {{ int.email }}
+          </button>
+        }
+      </div>
+
+      <div class="modal-actions">
+        <button (click)="closeAssignModal()" class="btn-cancel">Cancel</button>
+        <button 
+          (click)="assignComplaint()" 
+          [disabled]="!selectedIntervenantId()"
+          class="btn-confirm"
+        >
+          Assign
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showStatusModal()) {
+  <div class="modal-overlay" (click)="closeStatusModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Update Status</h2>
+      
+      <div class="option-list">
+        @for (status of statuses; track status.value) {
+          <button 
+            (click)="selectStatus(status.value)" 
+            class="option-btn"
+            [class.selected]="selectedStatus() === status.value"
+          >
+            {{ status.label }}
+          </button>
+        }
+      </div>
+
+      @if (selectedStatus() === 'resolved') {
+        <div class="notes-group">
+          <label>Resolution Notes</label>
+          <textarea 
+            [value]="resolutionNotes()"
+            (input)="resolutionNotes.set($any($event.target).value)"
+            placeholder="Describe how the issue was resolved..."
+            rows="4"
+          ></textarea>
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button (click)="closeStatusModal()" class="btn-cancel">Cancel</button>
+        <button 
+          (click)="updateStatus()" 
+          [disabled]="!selectedStatus()"
+          class="btn-confirm"
+        >
+          Update
+        </button>
+      </div>
+    </div>
+  </div>
+}

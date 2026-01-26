@@ -8,6 +8,13 @@
   margin-bottom: 24px;
 }
 
+.section-title {
+  font-size: 18px;
+  color: #1a1a1a;
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -22,14 +29,77 @@
   align-items: center;
   gap: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card.warning {
   border-left: 4px solid #F7C600;
 }
 
+.stat-card.open {
+  border-left: 4px solid #3b82f6;
+}
+
+.stat-card.progress {
+  border-left: 4px solid #8b5cf6;
+}
+
+.stat-card.resolved {
+  border-left: 4px solid #22c55e;
+}
+
 .stat-icon {
-  font-size: 32px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  background-color: #f3f4f6;
+  color: #6b6b6b;
+}
+
+.stat-icon.active-icon {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.stat-icon.user-icon {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.stat-icon.pending-icon {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.stat-icon.complaint-icon {
+  background-color: #f3f4f6;
+  color: #1a1a1a;
+}
+
+.stat-icon.open-icon {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.stat-icon.progress-icon {
+  background-color: #ede9fe;
+  color: #6d28d9;
+}
+
+.stat-icon.resolved-icon {
+  background-color: #dcfce7;
+  color: #166534;
 }
 
 .stat-content {

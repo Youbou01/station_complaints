@@ -1,5 +1,4 @@
 <div class="admin-container">
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-header">
       <img src="https://agilenergy.com.tn/fr/images/logoagilenergy.jpg" alt="AGIL" class="sidebar-logo" />
@@ -8,13 +7,16 @@
 
     <nav class="sidebar-nav">
       <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-item">
-         Dashboard
+        Dashboard
       </a>
       <a routerLink="/admin/stations" routerLinkActive="active" class="nav-item">
-         Stations
+        Stations
       </a>
       <a routerLink="/admin/users" routerLinkActive="active" class="nav-item">
-         Users
+        Users
+      </a>
+      <a routerLink="/admin/complaints" routerLinkActive="active" class="nav-item">
+        Complaints
       </a>
     </nav>
 
@@ -29,7 +31,6 @@
     </div>
   </aside>
 
-  <!-- Main Content -->
   <main class="main-content">
     <router-outlet />
   </main>

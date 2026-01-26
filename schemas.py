@@ -5,6 +5,7 @@ These define the shape of data coming into and out of the API.
 They are NOT database models - those are in models.py
 """
 
+from datetime import datetime
 from pydantic import BaseModel, Field, EmailStr
 from enums import RoleEnum, ComplaintTypeEnum, ComplaintStatusEnum
 
@@ -39,39 +40,6 @@ class TokenResponse(BaseModel):
     """Schema for login response."""
     access_token: str
     token_type: str = "bearer"
-
-
-# ============== COMPLAINT SCHEMAS ==============
-
-class ComplaintCreate(BaseModel):
-    """Schema for creating a new complaint."""
-    station_id: int = Field(ge=1)
-    type: ComplaintTypeEnum
-    description: str = Field(min_length=10)
-    severity: int = Field(ge=1, le=5)
-
-
-class ComplaintStatusUpdate(BaseModel):
-    """Schema for updating complaint status."""
-    status: ComplaintStatusEnum  # Now validated against the enum!
-
-
-class ComplaintResponse(BaseModel):
-    """Schema for complaint data in responses."""
-    id: int
-    station_id: int
-    type: str
-    description: str
-    severity: int
-    status: str
-
-    class Config:
-        from_attributes = True
-# Without from_attributes:
-#return {"id": user.id, "email": user.email, ...}  # Manual, tedious
-
-# With from_attributes:
-#return UserResponse.from_orm(user)  # Automatic!
 
 # ============== STATION SCHEMAS ==============
 
@@ -108,3 +76,59 @@ class StationResponse(BaseModel):
 class AssignManagerRequest(BaseModel):
     """Schema for assigning a manager to a station."""
     manager_id: int | None  # None to unassign
+
+# ============== COMPLAINT SCHEMAS ==============
+
+class ComplaintCreate(BaseModel):
+    """Schema for creating a new complaint."""
+    title: str = Field(min_length=5)
+    type: ComplaintTypeEnum
+    description: str = Field(min_length=3)
+    severity: int = Field(ge=1, le=10)
+
+class ComplaintAssign(BaseModel):
+    assigned_to_id: int
+
+class ComplaintUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    type: ComplaintTypeEnum | None = None
+    severity: int | None = Field(default=None, ge=1, le=5)
+
+class ComplaintStatusUpdate(BaseModel):
+    """Schema for updating complaint status."""
+    status: ComplaintStatusEnum 
+    resolution_notes: str | None = None
+
+class ComplaintResponse(BaseModel):
+    id: int
+    title: str
+    description: str
+    type: str
+    severity: int
+    status: str
+    station_id: int
+    created_by_id: int
+    assigned_to_id: int | None
+    resolution_notes: str | None
+    created_at: datetime
+    updated_at: datetime | None
+    resolved_at: datetime | None
+
+    class Config:
+        from_attributes = True
+# Without from_attributes:
+#return {"id": user.id, "email": user.email, ...}  # Manual, tedious
+
+# With from_attributes:
+#return UserResponse.from_orm(user)  # Automatic!
+
+class ComplaintDetailResponse(ComplaintResponse):
+    station: StationResponse
+    created_by: UserResponse
+    assigned_to: UserResponse | None
+
+    class Config:
+        from_attributes = True
+
+

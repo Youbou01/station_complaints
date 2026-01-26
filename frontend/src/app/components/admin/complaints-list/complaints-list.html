@@ -1,0 +1,77 @@
+<div class="complaints-page">
+  <div class="page-header">
+    <h1 class="page-title">Complaints</h1>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  @if (complaintsService.isLoading()) {
+    <div class="loading">Loading complaints...</div>
+  } @else if (complaintsService.complaints().length === 0) {
+    <div class="empty-state">
+      <p>No complaints found.</p>
+    </div>
+  } @else {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Station</th>
+            <th>Type</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (complaint of complaintsService.complaints(); track complaint.id) {
+            <tr>
+              <td class="id-cell">#{{ complaint.id }}</td>
+              <td class="title-cell">{{ complaint.title }}</td>
+              <td>{{ getStationName(complaint.station_id) }}</td>
+              <td>
+                <span class="type-badge">{{ getTypeLabel(complaint.type) }}</span>
+              </td>
+              <td>
+                <span class="severity-badge severity-{{ complaint.severity }}">
+                  {{ getSeverityLabel(complaint.severity) }}
+                </span>
+              </td>
+              <td>
+                <span class="status-badge status-{{ complaint.status }}">
+                  {{ getStatusLabel(complaint.status) }}
+                </span>
+              </td>
+              <td class="date-cell">{{ complaint.created_at | date:'short' }}</td>
+              <td class="actions-cell">
+                <a [routerLink]="['/admin/complaints', complaint.id]" class="action-btn view">View</a>
+                @if (complaint.status === 'open') {
+                  <button (click)="confirmDelete(complaint)" class="action-btn delete">Delete</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (showDeleteModal()) {
+  <div class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Delete Complaint</h2>
+      <p>Are you sure you want to delete complaint <strong>#{{ complaintToDelete()?.id }}</strong>?</p>
+      <p class="warning-text">This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button (click)="cancelDelete()" class="btn-cancel">Cancel</button>
+        <button (click)="deleteComplaint()" class="btn-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+}
