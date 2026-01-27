@@ -8,6 +8,7 @@ export interface StationFormData {
   governorate: string;
   isActive: boolean;
   managerId: number | null;
+  assistantId: number | null;
 }
 
 export const stationInitialData: StationFormData = {
@@ -17,6 +18,7 @@ export const stationInitialData: StationFormData = {
   governorate: '',
   isActive: true,
   managerId: null,
+  assistantId: null,
 };
 
 export const createStationSchema = (editMode: Signal<boolean>) =>

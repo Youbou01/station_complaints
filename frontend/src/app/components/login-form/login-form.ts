@@ -36,10 +36,15 @@ export class LoginForm {
     try {
       const user = await this.authService.login(email, password);
       
-      if (user.role === 'administrator') {
-        this.router.navigate(['/admin']);
-      } else {
-        this.router.navigate(['/dashboard']);
+      // Role-based redirect
+      switch (user.role) {
+        case 'administrator':
+          this.router.navigate(['/admin']);
+          break;
+        default:
+          // For now, redirect all other roles to admin (will be updated later)
+          this.router.navigate(['/admin']);
+          break;
       }
     } catch (error) {
       this.errorMessage.set(error as string);

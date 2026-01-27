@@ -110,7 +110,6 @@ export class AuthService {
           resolve(user);
         },
         error: (error) => {
-          this.logout();
           reject(error.error?.detail || 'Failed to fetch user');
         }
       });

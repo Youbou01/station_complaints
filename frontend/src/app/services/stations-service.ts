@@ -9,6 +9,7 @@ export interface Station {
   governorate: string;
   is_active: boolean;
   manager_id: number | null;
+  assistant_id: number | null;
 }
 
 export interface StationCreate {

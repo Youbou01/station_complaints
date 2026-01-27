@@ -59,6 +59,7 @@ export class StationForm implements OnInit {
         governorate: station.governorate,
         isActive: station.is_active,
         managerId: station.manager_id,
+        assistantId: station.assistant_id || null,
       });
     } catch (error) {
       this.errorMessage.set(error as string);
