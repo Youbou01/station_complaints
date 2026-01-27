@@ -68,6 +68,7 @@ class StationResponse(BaseModel):
     governorate: str
     is_active: bool
     manager_id: int | None
+    assistant_id: int | None
 
     class Config:
         from_attributes = True
@@ -130,5 +131,60 @@ class ComplaintDetailResponse(ComplaintResponse):
 
     class Config:
         from_attributes = True
+
+
+# ============== DEPARTMENT SCHEMAS ==============
+
+class DepartmentCreate(BaseModel):
+    """Schema for creating a new department."""
+    name: str = Field(min_length=2)
+    complaint_type: ComplaintTypeEnum
+    intervenant_id: int | None = None
+
+
+class DepartmentUpdate(BaseModel):
+    """Schema for updating a department."""
+    name: str | None = None
+    intervenant_id: int | None = None
+
+
+class DepartmentResponse(BaseModel):
+    """Schema for department data in responses."""
+    id: int
+    name: str
+    complaint_type: str
+    intervenant_id: int | None
+
+    class Config:
+        from_attributes = True
+
+
+# ============== RATING SCHEMAS ==============
+
+class RatingCreate(BaseModel):
+    """Schema for creating a new rating."""
+    complaint_id: int
+    rating_score: int = Field(ge=1, le=5)
+
+
+class RatingResponse(BaseModel):
+    """Schema for rating data in responses."""
+    id: int
+    complaint_id: int
+    intervenant_id: int
+    director_id: int
+    resolution_time_hours: float
+    rating_score: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ============== ASSISTANT ASSIGNMENT SCHEMAS ==============
+
+class AssignAssistantRequest(BaseModel):
+    """Schema for assigning an assistant to a station."""
+    assistant_id: int | None  # None to unassign
 
 

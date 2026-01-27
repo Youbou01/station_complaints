@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from database import engine, get_db
-from models import Base, Complaint, User, Station
+from models import Base, Complaint, User, Station, Department, Rating
 from schemas import (
     UserCreate,
     UserResponse,
@@ -27,6 +27,12 @@ from schemas import (
     StationUpdate,
     StationResponse,
     AssignManagerRequest,
+    DepartmentCreate,
+    DepartmentUpdate,
+    DepartmentResponse,
+    RatingCreate,
+    RatingResponse,
+    AssignAssistantRequest,
 )
 from security import hash_password, verify_password
 from auth import create_access_token
@@ -130,6 +136,36 @@ def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+@app.post("/register", response_model=UserResponse, tags=["Authentication"])
+def register_user(
+    user: UserCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Self-registration endpoint for new users.
+    Creates inactive users that need admin approval.
+    """
+    existing_user = db.query(User).filter(User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    hashed = hash_password(user.password)
+    db_user = User(
+        email=user.email,
+        password_hash=hashed,
+        role=user.role.value,
+        is_active=False  # Inactive until admin approves
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    
+    return db_user
+
+
 @app.get("/me", response_model=UserResponse, tags=["Authentication"])
 def read_my_profile(current_user: User = Depends(get_current_user)):
     """Get the current logged-in user's profile."""
@@ -180,6 +216,7 @@ def create_complaint(
     """
     Create a new complaint. Only managers can do this.
     Complaint is automatically linked to the manager's station.
+    Auto-assigned to intervenant based on complaint type via department.
     """
     # Get manager's station
     station = db.query(Station).filter(Station.manager_id == current_user.id).first()
@@ -190,6 +227,7 @@ def create_complaint(
             detail="You are not assigned to any station"
         )
     
+    # Create complaint
     db_complaint = Complaint(
         title=complaint.title,
         description=complaint.description,
@@ -199,6 +237,15 @@ def create_complaint(
         created_by_id=current_user.id,
         status="open"
     )
+    
+    # Auto-assign based on department
+    department = db.query(Department).filter(
+        Department.complaint_type == complaint.type.value
+    ).first()
+    
+    if department and department.intervenant_id:
+        db_complaint.assigned_to_id = department.intervenant_id
+        db_complaint.status = "assigned"
 
     db.add(db_complaint)
     db.commit()
@@ -219,7 +266,7 @@ def get_complaints(
     Get complaints based on user role:
     - Administrator: All complaints
     - Manager: Only their station's complaints
-    - Assistant: All complaints (they manage workflow)
+    - Assistant: Only complaints from their assigned stations
     - Intervenant: Only complaints assigned to them
     - Director: All complaints (for review)
     """
@@ -230,6 +277,13 @@ def get_complaints(
         station = db.query(Station).filter(Station.manager_id == current_user.id).first()
         if station:
             query = query.filter(Complaint.station_id == station.id)
+        else:
+            return []
+    elif current_user.role == "assistant":
+        # Filter to only stations assigned to this assistant
+        assigned_station_ids = [s.id for s in db.query(Station).filter(Station.assistant_id == current_user.id).all()]
+        if assigned_station_ids:
+            query = query.filter(Complaint.station_id.in_(assigned_station_ids))
         else:
             return []
     elif current_user.role == "intervenant":
@@ -773,3 +827,294 @@ def assign_manager(
     db.refresh(station)
 
     return station
+
+
+@app.put("/stations/{station_id}/assistant", response_model=StationResponse, tags=["Stations"])
+def assign_assistant(
+    station_id: int,
+    request: AssignAssistantRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))
+):
+    """
+    Assign or unassign an assistant to a station. Admin only.
+    """
+    station = db.query(Station).filter(Station.id == station_id).first()
+
+    if not station:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Station not found"
+        )
+
+    if request.assistant_id is not None:
+        # Verify assistant exists and has assistant role
+        assistant = db.query(User).filter(User.id == request.assistant_id).first()
+
+        if not assistant:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        if assistant.role != "assistant":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User is not an assistant"
+            )
+
+    station.assistant_id = request.assistant_id
+    db.commit()
+    db.refresh(station)
+
+    return station
+
+
+# ============== DEPARTMENTS ==============
+
+@app.post("/departments", response_model=DepartmentResponse, tags=["Departments"])
+def create_department(
+    department: DepartmentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))
+):
+    """
+    Create a new department. Admin only.
+    Links complaint types to specific intervenants for auto-assignment.
+    """
+    # Check if complaint type already has a department
+    existing = db.query(Department).filter(
+        Department.complaint_type == department.complaint_type.value
+    ).first()
+    
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Department for complaint type '{department.complaint_type.value}' already exists"
+        )
+    
+    # Verify intervenant if provided
+    if department.intervenant_id:
+        intervenant = db.query(User).filter(User.id == department.intervenant_id).first()
+        if not intervenant:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Intervenant not found"
+            )
+        if intervenant.role != "intervenant":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User is not an intervenant"
+            )
+    
+    db_department = Department(
+        name=department.name,
+        complaint_type=department.complaint_type.value,
+        intervenant_id=department.intervenant_id
+    )
+    db.add(db_department)
+    db.commit()
+    db.refresh(db_department)
+    
+    return db_department
+
+
+@app.get("/departments", response_model=list[DepartmentResponse], tags=["Departments"])
+def get_departments(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator", "assistant"))
+):
+    """
+    Get all departments. Admin and assistant only.
+    """
+    return db.query(Department).all()
+
+
+@app.get("/departments/{department_id}", response_model=DepartmentResponse, tags=["Departments"])
+def get_department(
+    department_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator", "assistant"))
+):
+    """
+    Get a specific department by ID.
+    """
+    department = db.query(Department).filter(Department.id == department_id).first()
+    
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Department not found"
+        )
+    
+    return department
+
+
+@app.put("/departments/{department_id}", response_model=DepartmentResponse, tags=["Departments"])
+def update_department(
+    department_id: int,
+    department_update: DepartmentUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))
+):
+    """
+    Update a department. Admin only.
+    """
+    department = db.query(Department).filter(Department.id == department_id).first()
+    
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Department not found"
+        )
+    
+    if department_update.name is not None:
+        department.name = department_update.name
+    
+    if department_update.intervenant_id is not None:
+        # Verify intervenant
+        intervenant = db.query(User).filter(User.id == department_update.intervenant_id).first()
+        if not intervenant:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Intervenant not found"
+            )
+        if intervenant.role != "intervenant":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User is not an intervenant"
+            )
+        department.intervenant_id = department_update.intervenant_id
+    
+    db.commit()
+    db.refresh(department)
+    
+    return department
+
+
+@app.delete("/departments/{department_id}", tags=["Departments"])
+def delete_department(
+    department_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("administrator"))
+):
+    """
+    Delete a department. Admin only.
+    """
+    department = db.query(Department).filter(Department.id == department_id).first()
+    
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Department not found"
+        )
+    
+    db.delete(department)
+    db.commit()
+    
+    return {"message": "Department deleted successfully"}
+
+
+# ============== RATINGS ==============
+
+@app.post("/ratings", response_model=RatingResponse, tags=["Ratings"])
+def create_rating(
+    rating: RatingCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("director"))
+):
+    """
+    Create a rating for a resolved complaint. Director only.
+    Resolution time is calculated automatically.
+    """
+    complaint = db.query(Complaint).filter(Complaint.id == rating.complaint_id).first()
+    
+    if not complaint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Complaint not found"
+        )
+    
+    if complaint.status != "resolved":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Can only rate resolved complaints"
+        )
+    
+    if not complaint.assigned_to_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Complaint has no assigned intervenant"
+        )
+    
+    if not complaint.resolved_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Complaint has no resolution date"
+        )
+    
+    # Check if already rated
+    existing_rating = db.query(Rating).filter(
+        Rating.complaint_id == rating.complaint_id
+    ).first()
+    
+    if existing_rating:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Complaint already rated"
+        )
+    
+    # Calculate resolution time in hours
+    resolution_time = (complaint.resolved_at - complaint.created_at).total_seconds() / 3600
+    
+    db_rating = Rating(
+        complaint_id=rating.complaint_id,
+        intervenant_id=complaint.assigned_to_id,
+        director_id=current_user.id,
+        resolution_time_hours=resolution_time,
+        rating_score=rating.rating_score
+    )
+    
+    db.add(db_rating)
+    db.commit()
+    db.refresh(db_rating)
+    
+    return db_rating
+
+
+@app.get("/ratings", response_model=list[RatingResponse], tags=["Ratings"])
+def get_ratings(
+    intervenant_id: int | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("director", "administrator"))
+):
+    """
+    Get all ratings. Director and admin only.
+    Can filter by intervenant.
+    """
+    query = db.query(Rating)
+    
+    if intervenant_id:
+        query = query.filter(Rating.intervenant_id == intervenant_id)
+    
+    return query.order_by(Rating.created_at.desc()).all()
+
+
+@app.get("/ratings/{rating_id}", response_model=RatingResponse, tags=["Ratings"])
+def get_rating(
+    rating_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("director", "administrator"))
+):
+    """
+    Get a specific rating by ID.
+    """
+    rating = db.query(Rating).filter(Rating.id == rating_id).first()
+    
+    if not rating:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Rating not found"
+        )
+    
+    return rating
