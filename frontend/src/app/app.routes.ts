@@ -16,11 +16,6 @@ export const routes: Routes = [
     loadComponent: () => import('./components/sign-up-form/sign-up-form').then(m => m.SignUpForm)
   },
   {
-    path: 'dashboard',
-    loadComponent: () => import('./components/dashboard/dashboard').then(m => m.Dashboard),
-    canActivate: [authGuard]
-  },
-  {
     path: 'admin',
     loadComponent: () => import('./components/admin/admin-layout/admin-layout').then(m => m.AdminLayout),
     canActivate: [authGuard, roleGuard(['administrator'])],
