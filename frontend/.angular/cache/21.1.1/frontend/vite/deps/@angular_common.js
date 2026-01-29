@@ -87,7 +87,7 @@ import {
   provideImgixLoader,
   provideNetlifyLoader,
   registerLocaleData
-} from "./chunk-V5Z5WZ2H.js";
+} from "./chunk-2EDEZDGB.js";
 import {
   BrowserPlatformLocation,
   DomAdapter,
@@ -97,11 +97,12 @@ import {
   getDOM,
   parseCookieValue,
   setRootDomAdapter
-} from "./chunk-PDDO5WH6.js";
+} from "./chunk-MIXBVKSU.js";
 import {
   DOCUMENT,
   IMAGE_CONFIG
-} from "./chunk-VRAJM4OB.js";
+} from "./chunk-YCR3CWZC.js";
+import "./chunk-PJVWDKLX.js";
 export {
   APP_BASE_HREF,
   AsyncPipe,

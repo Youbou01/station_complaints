@@ -52,7 +52,8 @@ export const routes: Routes = [
       {
         path: 'complaints/:id',
         loadComponent: () => import('./components/admin/complaint-detail/complaint-detail').then(m => m.ComplaintDetailComponent)
-      }
+      },
+      { path: 'departments', loadComponent: () => import('./components/admin/departments-list/departments-list').then(m => m.DepartmentsList) },
     ]
   },
   // Manager Routes

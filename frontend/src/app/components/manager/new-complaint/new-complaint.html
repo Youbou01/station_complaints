@@ -6,7 +6,7 @@
   }
 
   <div class="form-card">
-    <form (ngSubmit)="onSubmit()">
+    <form (submit)="onSubmit($event)">
       <div class="form-group">
         <label>Title</label>
         <input
@@ -55,9 +55,6 @@
             </button>
           }
         </div>
-        @if (complaintForm.type().invalid() && complaintForm.type().touched()) {
-          <div class="form-error">Please select a complaint type</div>
-        }
       </div>
 
       <div class="form-group">
@@ -81,7 +78,7 @@
         <button type="button" (click)="cancel()" class="btn-cancel">Cancel</button>
         <button
           type="submit"
-          [disabled]="complaintForm().invalid() || isLoading()"
+          [disabled]="isLoading()"
           class="btn-submit"
         >
           @if (isLoading()) {

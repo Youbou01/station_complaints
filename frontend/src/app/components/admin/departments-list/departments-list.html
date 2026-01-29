@@ -1,0 +1,142 @@
+<div class="departments-page">
+  <div class="page-header">
+    <h1 class="page-title">Departments</h1>
+    @if (getMissingTypes().length > 0) {
+      <button (click)="openCreateModal()" class="btn-add">Add Department</button>
+    }
+  </div>
+
+  <p class="page-description">
+    Each department handles a specific type of complaint. Assign an intervenant to each department for automatic complaint routing.
+  </p>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  @if (departmentsService.isLoading()) {
+    <div class="loading">Loading departments...</div>
+  } @else if (departmentsService.departments().length === 0) {
+    <div class="empty-state">
+      <p>No departments created yet.</p>
+      <button (click)="openCreateModal()" class="btn-add">Create First Department</button>
+    </div>
+  } @else {
+    <div class="departments-grid">
+      @for (dept of departmentsService.departments(); track dept.id) {
+        <div class="department-card" [class.unassigned]="!dept.intervenant_id">
+          <div class="dept-header">
+            <h3>{{ dept.name }}</h3>
+            <span class="type-badge">{{ getTypeLabel(dept.complaint_type) }}</span>
+          </div>
+          <div class="dept-body">
+            <div class="intervenant-info">
+              <span class="label">Intervenant:</span>
+              <span class="value" [class.warning]="!dept.intervenant_id">
+                {{ getIntervenantEmail(dept.intervenant_id) }}
+              </span>
+            </div>
+          </div>
+          <div class="dept-footer">
+            <button (click)="openAssignModal(dept)" class="btn-assign">
+              {{ dept.intervenant_id ? 'Change Intervenant' : 'Assign Intervenant' }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (showCreateModal()) {
+  <div class="modal-overlay" (click)="closeCreateModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Create Department</h2>
+      
+      <form (submit)="createDepartment($event)">
+        <div class="form-group">
+          <label>Complaint Type</label>
+          <div class="type-options">
+            @for (type of getMissingTypes(); track type.value) {
+              <button
+                type="button"
+                (click)="selectType(type.value)"
+                class="type-btn"
+                [class.selected]="newDeptType() === type.value"
+              >
+                {{ type.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Department Name</label>
+          <input
+            type="text"
+            [value]="newDeptName()"
+            (input)="newDeptName.set($any($event.target).value)"
+            class="form-input"
+            placeholder="e.g., Technical Department"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Assign Intervenant (optional)</label>
+          <div class="intervenant-options">
+            @for (int of intervenants; track int.id) {
+              <button
+                type="button"
+                (click)="selectIntervenantForCreate(int.id)"
+                class="int-btn"
+                [class.selected]="selectedIntervenantId() === int.id"
+              >
+                {{ int.email }}
+              </button>
+            }
+            @if (intervenants.length === 0) {
+              <p class="no-intervenants">No active intervenants available</p>
+            }
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" (click)="closeCreateModal()" class="btn-cancel">Cancel</button>
+          <button type="submit" class="btn-confirm">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showAssignModal()) {
+  <div class="modal-overlay" (click)="closeAssignModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Assign Intervenant</h2>
+      <p>Select an intervenant for {{ selectedDepartment()?.name }}:</p>
+      
+      <form (submit)="assignIntervenant($event)">
+        <div class="intervenant-options">
+          @for (int of intervenants; track int.id) {
+            <button
+              type="button"
+              (click)="selectIntervenant(int.id)"
+              class="int-btn"
+              [class.selected]="selectedIntervenantId() === int.id"
+            >
+              {{ int.email }}
+            </button>
+          }
+          @if (intervenants.length === 0) {
+            <p class="no-intervenants">No active intervenants available. Create intervenant users first.</p>
+          }
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" (click)="closeAssignModal()" class="btn-cancel">Cancel</button>
+          <button type="submit" [disabled]="!selectedIntervenantId()" class="btn-confirm">Assign</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

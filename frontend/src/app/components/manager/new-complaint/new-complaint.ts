@@ -38,13 +38,30 @@ export class NewComplaint {
     this.complaintModel.update(data => ({ ...data, severity }));
   }
 
-  async onSubmit() {
-    if (this.complaintForm().invalid()) return;
+  async onSubmit(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const data = this.complaintModel();
+    
+    // Manual validation
+    if (!data.title || data.title.length < 5) {
+      this.errorMessage.set('Title must be at least 5 characters');
+      return;
+    }
+    
+    if (!data.description || data.description.length < 10) {
+      this.errorMessage.set('Description must be at least 10 characters');
+      return;
+    }
+    
+    if (!data.type) {
+      this.errorMessage.set('Please select a complaint type');
+      return;
+    }
 
     this.isLoading.set(true);
     this.errorMessage.set('');
-
-    const data = this.complaintModel();
 
     try {
       await this.complaintsService.createComplaint({
@@ -55,7 +72,6 @@ export class NewComplaint {
       });
       this.router.navigate(['/manager/complaints']);
     } catch (error: unknown) {
-      // Properly handle error - it could be a string or an object
       if (typeof error === 'string') {
         this.errorMessage.set(error);
       } else if (error instanceof Error) {
