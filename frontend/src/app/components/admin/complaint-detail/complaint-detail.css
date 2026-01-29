@@ -128,9 +128,16 @@
   font-size: 14px;
 }
 
+.info-value {
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 500;
+}
+
 .code {
   font-family: monospace;
   font-weight: 600;
+  color: #1a1a1a;
 }
 
 .type-badge {

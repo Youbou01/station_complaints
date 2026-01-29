@@ -66,16 +66,8 @@ export class StationForm implements OnInit {
     }
   }
 
-  selectGovernorate(gov: string) {
-    this.stationModel.update((data) => ({ ...data, governorate: gov }));
-  }
-
   selectManager(managerId: number | null) {
     this.stationModel.update((data) => ({ ...data, managerId }));
-  }
-
-  toggleActive() {
-    this.stationModel.update((data) => ({ ...data, isActive: !data.isActive }));
   }
 
   async onSubmit() {
@@ -92,7 +84,6 @@ export class StationForm implements OnInit {
           name: data.name,
           address: data.address || undefined,
           governorate: data.governorate,
-          is_active: data.isActive,
         });
 
         const currentStation = await this.stationsService.getStation(this.stationId()!);
@@ -100,12 +91,17 @@ export class StationForm implements OnInit {
           await this.stationsService.assignManager(this.stationId()!, data.managerId);
         }
       } else {
-        await this.stationsService.createStation({
+        const newStation = await this.stationsService.createStation({
           name: data.name,
           code: data.code,
           address: data.address || undefined,
           governorate: data.governorate,
         });
+
+        // Assign manager if selected
+        if (data.managerId) {
+          await this.stationsService.assignManager(newStation.id, data.managerId);
+        }
       }
 
       this.router.navigate(['/admin/stations']);

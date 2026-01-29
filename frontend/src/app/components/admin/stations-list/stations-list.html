@@ -24,7 +24,6 @@
             <th>Name</th>
             <th>Governorate</th>
             <th>Manager</th>
-            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -35,11 +34,6 @@
               <td>{{ station.name }}</td>
               <td>{{ station.governorate }}</td>
               <td class="manager-cell">{{ getManagerEmail(station.manager_id) }}</td>
-              <td>
-                <span class="status-badge" [class.active]="station.is_active" [class.inactive]="!station.is_active">
-                  {{ station.is_active ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
               <td class="actions-cell">
                 <a [routerLink]="['/admin/stations', station.id, 'edit']" class="action-btn edit">Edit</a>
                 <button (click)="confirmDelete(station)" class="action-btn delete">Delete</button>

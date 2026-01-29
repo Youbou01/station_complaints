@@ -58,62 +58,35 @@
       <!-- Governorate Selection -->
       <div class="form-group">
         <label>Governorate *</label>
-        <div class="select-grid">
+        <select 
+          [formField]="stationForm.governorate"
+          class="form-input"
+        >
+          <option value="">Select a governorate</option>
           @for (gov of governorates; track gov) {
-            <button
-              type="button"
-              (click)="selectGovernorate(gov)"
-              class="select-btn"
-              [class.selected]="stationModel().governorate === gov"
-            >
-              {{ gov }}
-            </button>
+            <option [value]="gov">{{ gov }}</option>
           }
-        </div>
+        </select>
         @if (stationForm.governorate().invalid() && stationForm.governorate().touched()) {
           <div class="form-error">Please select a governorate</div>
         }
       </div>
 
-      <!-- Manager Selection (Edit mode only) -->
-      @if (isEditMode()) {
-        <div class="form-group">
-          <label>Manager</label>
-          <div class="manager-options">
-            <button
-              type="button"
-              (click)="selectManager(null)"
-              class="manager-btn"
-              [class.selected]="stationModel().managerId === null"
-            >
-              Not assigned
-            </button>
-            @for (manager of managers; track manager.id) {
-              <button
-                type="button"
-                (click)="selectManager(manager.id)"
-                class="manager-btn"
-                [class.selected]="stationModel().managerId === manager.id"
-              >
-                {{ manager.email }}
-              </button>
-            }
-          </div>
-        </div>
-
-        <!-- Active Toggle -->
-        <div class="form-group">
-          <button
-            type="button"
-            (click)="toggleActive()"
-            class="toggle-btn"
-            [class.active]="stationModel().isActive"
-          >
-            <span class="toggle-indicator"></span>
-            <span>{{ stationModel().isActive ? 'Active' : 'Inactive' }}</span>
-          </button>
-        </div>
-      }
+      <!-- Manager Selection -->
+      <div class="form-group">
+        <label>Manager (Optional)</label>
+        <select 
+          [(ngModel)]="stationModel().managerId"
+          (ngModelChange)="selectManager($event)"
+          name="manager"
+          class="form-input"
+        >
+          <option [ngValue]="null">Not assigned</option>
+          @for (manager of managers; track manager.id) {
+            <option [ngValue]="manager.id">{{ manager.email }}</option>
+          }
+        </select>
+      </div>
 
       <!-- Actions -->
       <div class="form-actions">
