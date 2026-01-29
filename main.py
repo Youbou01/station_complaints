@@ -216,7 +216,7 @@ def create_complaint(
     """
     Create a new complaint. Only managers can do this.
     Complaint is automatically linked to the manager's station.
-    Auto-assigned to intervenant based on complaint type via department.
+    Status starts as "open" and goes to assistant for review.
     """
     # Get manager's station
     station = db.query(Station).filter(Station.manager_id == current_user.id).first()
@@ -227,7 +227,7 @@ def create_complaint(
             detail="You are not assigned to any station"
         )
     
-    # Create complaint
+    # Create complaint with status "open" (no auto-assignment)
     db_complaint = Complaint(
         title=complaint.title,
         description=complaint.description,
@@ -237,15 +237,6 @@ def create_complaint(
         created_by_id=current_user.id,
         status="open"
     )
-    
-    # Auto-assign based on department
-    department = db.query(Department).filter(
-        Department.complaint_type == complaint.type.value
-    ).first()
-    
-    if department and department.intervenant_id:
-        db_complaint.assigned_to_id = department.intervenant_id
-        db_complaint.status = "assigned"
 
     db.add(db_complaint)
     db.commit()
@@ -428,6 +419,7 @@ def assign_complaint(
 ):
     """
     Assign a complaint to an intervenant. Only assistants can do this.
+    Sets the assigned_at timestamp when assigning for the first time.
     """
     complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
     
@@ -466,6 +458,70 @@ def assign_complaint(
     
     complaint.assigned_to_id = assignment.assigned_to_id
     complaint.status = "assigned"
+    
+    # Set assigned_at timestamp if this is the first assignment
+    if not complaint.assigned_at:
+        complaint.assigned_at = datetime.now()
+    
+    db.commit()
+    db.refresh(complaint)
+    
+    return complaint
+
+
+@app.post("/complaints/{complaint_id}/send", response_model=ComplaintResponse, tags=["Complaints"])
+def send_complaint(
+    complaint_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("assistant"))
+):
+    """
+    Send complaint to appropriate intervenant (auto-assign based on complaint type).
+    This is called when assistant clicks the "Send" button.
+    Only works for complaints with status "open".
+    """
+    complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
+    
+    if not complaint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Complaint not found"
+        )
+    
+    if complaint.status != "open":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Can only send complaints with 'open' status"
+        )
+    
+    # Auto-assign based on department
+    department = db.query(Department).filter(
+        Department.complaint_type == complaint.type
+    ).first()
+    
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"No department found for complaint type: {complaint.type}"
+        )
+    
+    if not department.intervenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Department '{department.name}' has no intervenant assigned"
+        )
+    
+    # Verify intervenant is active
+    intervenant = db.query(User).filter(User.id == department.intervenant_id).first()
+    if not intervenant or not intervenant.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Assigned intervenant is not active"
+        )
+    
+    complaint.assigned_to_id = department.intervenant_id
+    complaint.status = "assigned"
+    complaint.assigned_at = datetime.now()
     
     db.commit()
     db.refresh(complaint)

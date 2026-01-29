@@ -58,6 +58,7 @@ class Complaint(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     resolved_at = Column(DateTime(timezone=True), nullable=True)
+    assigned_at = Column(DateTime(timezone=True), nullable=True)
 
     station = relationship("Station", back_populates="complaints")
     created_by = relationship("User", back_populates="created_complaints", foreign_keys=[created_by_id])

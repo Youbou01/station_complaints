@@ -115,6 +115,7 @@ class ComplaintResponse(BaseModel):
     created_at: datetime
     updated_at: datetime | None
     resolved_at: datetime | None
+    assigned_at: datetime | None
 
     class Config:
         from_attributes = True
