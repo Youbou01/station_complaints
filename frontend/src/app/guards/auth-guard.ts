@@ -2,28 +2,9 @@ import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth-service';
 
-const waitForAuth = (authService: AuthService, timeout = 5000): Promise<void> => {
-  return new Promise((resolve) => {
-    if (authService.isInitialized()) {
-      resolve();
-      return;
-    }
-
-    const startTime = Date.now();
-    const interval = setInterval(() => {
-      if (authService.isInitialized() || Date.now() - startTime > timeout) {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 50);
-  });
-};
-
-export const authGuard: CanActivateFn = async () => {
+export const authGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
-
-  await waitForAuth(authService);
 
   if (authService.isLoggedIn()) {
     return true;
@@ -34,11 +15,9 @@ export const authGuard: CanActivateFn = async () => {
 };
 
 export const roleGuard = (allowedRoles: string[]): CanActivateFn => {
-  return async () => {
+  return () => {
     const authService = inject(AuthService);
     const router = inject(Router);
-
-    await waitForAuth(authService);
 
     const user = authService.currentUser();
 
@@ -51,26 +30,16 @@ export const roleGuard = (allowedRoles: string[]): CanActivateFn => {
       return true;
     }
 
-    // User is logged in but wrong role - redirect to their proper dashboard
-    switch (user.role) {
-      case 'administrator':
-        router.navigate(['/admin']);
-        break;
-      case 'manager':
-        router.navigate(['/manager']);
-        break;
-      case 'assistant':
-        router.navigate(['/assistant']);
-        break;
-      case 'intervenant':
-        router.navigate(['/intervenant']);
-        break;
-      case 'director':
-        router.navigate(['/director']);
-        break;
-      default:
-        router.navigate(['/auth/login']);
-    }
+    // Redirect to proper dashboard based on role
+    const roleRoutes: Record<string, string> = {
+      'administrator': '/admin',
+      'manager': '/manager',
+      'assistant': '/assistant',
+      'intervenant': '/intervenant',
+      'director': '/director'
+    };
+
+    router.navigate([roleRoutes[user.role] || '/auth/login']);
     return false;
   };
 };
