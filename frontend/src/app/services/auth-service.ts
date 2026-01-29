@@ -74,28 +74,42 @@ export class AuthService {
     formData.append('username', email);
     formData.append('password', password);
 
-    const response = await firstValueFrom(
-      this.http.post<LoginResponse>(`${this.apiUrl}/login`, formData)
-    );
-    
-    this.saveToken(response.access_token);
-    
-    const user = await firstValueFrom(
-      this.http.get<UserResponse>(`${this.apiUrl}/me`)
-    );
-    
-    this.currentUser.set(user);
-    this.isLoggedIn.set(true);
-    
-    return user;
+    try {
+      const response = await firstValueFrom(
+        this.http.post<LoginResponse>(`${this.apiUrl}/login`, formData)
+      );
+      
+      this.saveToken(response.access_token);
+      
+      try {
+        const user = await firstValueFrom(
+          this.http.get<UserResponse>(`${this.apiUrl}/me`)
+        );
+        
+        this.currentUser.set(user);
+        this.isLoggedIn.set(true);
+        
+        return user;
+      } catch (userError: any) {
+        // If fetching user fails, remove the saved token
+        this.removeToken();
+        throw userError.error?.detail || userError.message || 'Failed to fetch user';
+      }
+    } catch (loginError: any) {
+      throw loginError.error?.detail || loginError.message || 'Login failed';
+    }
   }
 
   async register(email: string, password: string, role: string): Promise<boolean> {
     const body: RegisterRequest = { email, password, role };
-    await firstValueFrom(
-      this.http.post<UserResponse>(`${this.apiUrl}/register`, body)
-    );
-    return true;
+    try {
+      await firstValueFrom(
+        this.http.post<UserResponse>(`${this.apiUrl}/register`, body)
+      );
+      return true;
+    } catch (error: any) {
+      throw error.error?.detail || error.message || 'Registration failed';
+    }
   }
 
   logout(): void {

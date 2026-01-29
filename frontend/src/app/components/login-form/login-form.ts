@@ -56,8 +56,15 @@ export class LoginForm {
         default:
           this.router.navigate(['/dashboard']);
       }
-    } catch (error) {
-      this.errorMessage.set(error as string);
+    } catch (error: unknown) {
+      // Error is already a string from AuthService
+      if (typeof error === 'string') {
+        this.errorMessage.set(error);
+      } else if (error instanceof Error) {
+        this.errorMessage.set(error.message);
+      } else {
+        this.errorMessage.set('Login failed');
+      }
     } finally {
       this.isLoading.set(false);
     }
