@@ -1,6 +1,10 @@
 <div class="complaints-page">
   <h1 class="page-title">All Complaints</h1>
 
+  @if (successMessage()) {
+    <div class="success-banner">{{ successMessage() }}</div>
+  }
+
   @if (errorMessage()) {
     <div class="error-banner">{{ errorMessage() }}</div>
   }
@@ -39,14 +43,16 @@
               </td>
               <td class="date-cell">{{ complaint.created_at | date:'short' }}</td>
               <td class="actions-cell">
-                @if (complaint.status === 'open' || complaint.status === 'assigned') {
-                  <button (click)="openAssignModal(complaint)" class="action-btn assign">
-                    Assign
+                @if (complaint.status === 'open') {
+                  <button (click)="openSendModal(complaint)" class="action-btn send">
+                    Send
                   </button>
                 }
-                <button (click)="openStatusModal(complaint)" class="action-btn status">
-                  Status
-                </button>
+                @if (complaint.status === 'assigned') {
+                  <button (click)="openAssignModal(complaint)" class="action-btn assign">
+                    Reassign
+                  </button>
+                }
               </td>
             </tr>
           }
@@ -56,11 +62,27 @@
   }
 </div>
 
+@if (showSendModal()) {
+  <div class="modal-overlay" (click)="closeSendModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Send Complaint #{{ selectedComplaint()?.id }}</h2>
+      <p>This will automatically assign the complaint to the appropriate intervenant based on the complaint type.</p>
+      
+      <div class="modal-actions">
+        <button (click)="closeSendModal()" class="btn-cancel">Cancel</button>
+        <button (click)="sendComplaint()" class="btn-confirm">
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 @if (showAssignModal()) {
   <div class="modal-overlay" (click)="closeAssignModal()">
     <div class="modal" (click)="$event.stopPropagation()">
-      <h2>Assign Complaint #{{ selectedComplaint()?.id }}</h2>
-      <p>Select an intervenant:</p>
+      <h2>Reassign Complaint #{{ selectedComplaint()?.id }}</h2>
+      <p>Select a different intervenant:</p>
       
       <div class="option-list">
         @for (int of intervenants(); track int.id) {
@@ -81,50 +103,7 @@
           [disabled]="!selectedIntervenantId()"
           class="btn-confirm"
         >
-          Assign
-        </button>
-      </div>
-    </div>
-  </div>
-}
-
-@if (showStatusModal()) {
-  <div class="modal-overlay" (click)="closeStatusModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <h2>Update Status</h2>
-      
-      <div class="option-list">
-        @for (status of statuses; track status.value) {
-          <button 
-            (click)="selectStatus(status.value)" 
-            class="option-btn"
-            [class.selected]="selectedStatus() === status.value"
-          >
-            {{ status.label }}
-          </button>
-        }
-      </div>
-
-      @if (selectedStatus() === 'resolved' || selectedStatus() === 'rejected') {
-        <div class="notes-group">
-          <label>Notes</label>
-          <textarea 
-            [value]="resolutionNotes()"
-            (input)="resolutionNotes.set($any($event.target).value)"
-            placeholder="Add notes..."
-            rows="3"
-          ></textarea>
-        </div>
-      }
-
-      <div class="modal-actions">
-        <button (click)="closeStatusModal()" class="btn-cancel">Cancel</button>
-        <button 
-          (click)="updateStatus()" 
-          [disabled]="!selectedStatus()"
-          class="btn-confirm"
-        >
-          Update
+          Reassign
         </button>
       </div>
     </div>

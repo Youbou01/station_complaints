@@ -8,6 +8,15 @@
   margin-bottom: 24px;
 }
 
+.success-banner {
+  background-color: rgba(34, 197, 94, 0.1);
+  border: 1px solid #22c55e;
+  color: #22c55e;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
 .error-banner {
   background-color: rgba(227, 30, 36, 0.1);
   border: 1px solid #E31E24;
@@ -106,6 +115,12 @@
   border-radius: 6px;
   font-size: 13px;
   cursor: pointer;
+}
+
+.action-btn.send {
+  background-color: #F7C600;
+  color: #1a1a1a;
+  font-weight: 600;
 }
 
 .action-btn.assign {
