@@ -51,7 +51,7 @@ export class LoginForm {
           this.router.navigate(['/intervenant']);
           break;
         case 'director':
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/director']);
           break;
         default:
           this.router.navigate(['/dashboard']);

@@ -1,0 +1,89 @@
+<div class="complaints-page">
+  <h1 class="page-title">All Complaints (Read Only)</h1>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  @if (successMessage()) {
+    <div class="success-banner">{{ successMessage() }}</div>
+  }
+
+  @if (complaintsService.isLoading()) {
+    <div class="loading">Loading complaints...</div>
+  } @else if (complaintsService.complaints().length === 0) {
+    <div class="empty-state">No complaints found.</div>
+  } @else {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Station</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (complaint of complaintsService.complaints(); track complaint.id) {
+            <tr>
+              <td class="id-cell">#{{ complaint.id }}</td>
+              <td class="title-cell">{{ complaint.title }}</td>
+              <td>{{ getStationName(complaint.station_id) }}</td>
+              <td>
+                <span class="type-badge">{{ getTypeLabel(complaint.type) }}</span>
+              </td>
+              <td>
+                <span class="status-badge status-{{ complaint.status }}">
+                  {{ getStatusLabel(complaint.status) }}
+                </span>
+              </td>
+              <td class="date-cell">{{ complaint.created_at | date:'short' }}</td>
+              <td>
+                @if (complaint.status === 'resolved') {
+                  <button (click)="openRatingModal(complaint)" class="action-btn rate">
+                    Rate
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (showRatingModal()) {
+  <div class="modal-overlay" (click)="closeRatingModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Rate Complaint #{{ selectedComplaint()?.id }}</h2>
+      <p>Rate the intervenant's performance:</p>
+
+      <div class="rating-options">
+        @for (score of [1, 2, 3, 4, 5]; track score) {
+          <button
+            (click)="setRating(score)"
+            class="rating-btn"
+            [class.selected]="ratingScore() === score"
+          >
+            {{ score }}
+          </button>
+        }
+      </div>
+
+      <div class="rating-labels">
+        <span>Poor</span>
+        <span>Excellent</span>
+      </div>
+
+      <div class="modal-actions">
+        <button (click)="closeRatingModal()" class="btn-cancel">Cancel</button>
+        <button (click)="submitRating()" class="btn-confirm">Submit Rating</button>
+      </div>
+    </div>
+  </div>
+}

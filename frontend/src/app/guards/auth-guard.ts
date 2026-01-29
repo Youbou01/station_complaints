@@ -2,18 +2,16 @@ import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth-service';
 
-
-// Helper to wait for auth initialization
-const waitForAuth = (authService: AuthService): Promise<void> => {
+const waitForAuth = (authService: AuthService, timeout = 5000): Promise<void> => {
   return new Promise((resolve) => {
     if (authService.isInitialized()) {
       resolve();
       return;
     }
-    
-    // Poll until initialized
+
+    const startTime = Date.now();
     const interval = setInterval(() => {
-      if (authService.isInitialized()) {
+      if (authService.isInitialized() || Date.now() - startTime > timeout) {
         clearInterval(interval);
         resolve();
       }
@@ -53,7 +51,26 @@ export const roleGuard = (allowedRoles: string[]): CanActivateFn => {
       return true;
     }
 
-    router.navigate(['/auth/login']);
+    // User is logged in but wrong role - redirect to their proper dashboard
+    switch (user.role) {
+      case 'administrator':
+        router.navigate(['/admin']);
+        break;
+      case 'manager':
+        router.navigate(['/manager']);
+        break;
+      case 'assistant':
+        router.navigate(['/assistant']);
+        break;
+      case 'intervenant':
+        router.navigate(['/intervenant']);
+        break;
+      case 'director':
+        router.navigate(['/director']);
+        break;
+      default:
+        router.navigate(['/auth/login']);
+    }
     return false;
   };
 };

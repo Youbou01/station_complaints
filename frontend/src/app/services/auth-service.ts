@@ -37,22 +37,33 @@ export class AuthService {
   constructor() {
     this.initializeAuth();
   }
-
-  private async initializeAuth(): Promise<void> {
+  
+  private initializeAuth(): void {
     const token = this.getToken();
-    
-    if (token) {
-      try {
-        await this.fetchCurrentUser();
-        this.isLoggedIn.set(true);
-      } catch {
-        this.removeToken();
-        this.isLoggedIn.set(false);
-      }
+
+    if (!token) {
+      this.isInitialized.set(true);
+      return;
     }
-    
-    this.isInitialized.set(true);
+
+    // Fetch current user to validate token
+    this.http.get<UserResponse>(`${this.apiUrl}/me`).subscribe({
+      next: (user) => {
+        this.currentUser.set(user);
+        this.isLoggedIn.set(true);
+        this.isInitialized.set(true);
+      },
+      error: () => {
+        // Token is invalid, clean up
+        this.removeToken();
+        this.currentUser.set(null);
+        this.isLoggedIn.set(false);
+        this.isInitialized.set(true);
+      }
+    });
   }
+
+    
 
   private saveToken(token: string): void {
     localStorage.setItem('access_token', token);

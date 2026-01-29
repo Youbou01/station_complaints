@@ -79,9 +79,9 @@
 
       <div class="form-actions">
         <button type="button" (click)="cancel()" class="btn-cancel">Cancel</button>
-        <button 
-          type="submit" 
-          [disabled]="complaintForm().invalid() || isLoading()" 
+        <button
+          type="submit"
+          [disabled]="complaintForm().invalid() || isLoading()"
           class="btn-submit"
         >
           @if (isLoading()) {

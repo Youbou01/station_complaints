@@ -91,6 +91,17 @@ export const routes: Routes = [
       { path: 'complaints', loadComponent: () => import('./components/intervenant/intervenant-complaints/intervenant-complaints').then(m => m.IntervenantComplaints) }
     ]
   },
+  // Director Routes
+  {
+    path: 'director',
+    loadComponent: () => import('./components/director/director-layout/director-layout').then(m => m.DirectorLayout),
+    canActivate: [authGuard, roleGuard(['director'])],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', loadComponent: () => import('./components/director/director-dashboard/director-dashboard').then(m => m.DirectorDashboard) },
+      { path: 'complaints', loadComponent: () => import('./components/director/director-complaints/director-complaints').then(m => m.DirectorComplaints) }
+    ]
+  },
   {
     path: '**',
     redirectTo: 'auth/login'

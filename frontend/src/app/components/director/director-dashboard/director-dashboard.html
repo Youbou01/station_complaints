@@ -1,0 +1,35 @@
+<div class="dashboard">
+  <h1 class="page-title">Director Dashboard</h1>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-value">{{ totalStations }}</span>
+      <span class="stat-label">Stations</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ totalComplaints }}</span>
+      <span class="stat-label">Total Complaints</span>
+    </div>
+    <div class="stat-card open">
+      <span class="stat-value">{{ openComplaints }}</span>
+      <span class="stat-label">Open</span>
+    </div>
+    <div class="stat-card progress">
+      <span class="stat-value">{{ inProgressComplaints }}</span>
+      <span class="stat-label">In Progress</span>
+    </div>
+    <div class="stat-card resolved">
+      <span class="stat-value">{{ resolvedComplaints }}</span>
+      <span class="stat-label">Resolved</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h2>Quick Actions</h2>
+    </div>
+    <div class="action-buttons">
+      <a routerLink="/director/complaints" class="action-btn">View All Complaints</a>
+    </div>
+  </div>
+</div>
