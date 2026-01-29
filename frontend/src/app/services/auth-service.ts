@@ -1,20 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-// Response types from backend
-interface LoginResponse {
-  access_token: string;
-  token_type: string;
-}
+import { firstValueFrom } from 'rxjs';
 
-interface UserResponse {
+export interface UserResponse {
   id: number;
   email: string;
   role: string;
   is_active: boolean;
 }
 
-// Request types
+interface LoginResponse {
+  access_token: string;
+  token_type: string;
+}
+
 interface RegisterRequest {
   email: string;
   password: string;
@@ -32,99 +32,70 @@ export class AuthService {
 
   currentUser = signal<UserResponse | null>(null);
   isLoggedIn = signal<boolean>(false);
-  isInitialized = signal<boolean>(false); // Track if auth check is complete
+  isInitialized = signal<boolean>(false);
 
-  constructor() {
-    this.initializeAuth();
-  }
-  
-  private initializeAuth(): void {
-    const token = this.getToken();
+  async initialize(): Promise<void> {
+    const token = localStorage.getItem('access_token');
 
     if (!token) {
       this.isInitialized.set(true);
       return;
     }
 
-    // Fetch current user to validate token
-    this.http.get<UserResponse>(`${this.apiUrl}/me`).subscribe({
-      next: (user) => {
-        this.currentUser.set(user);
-        this.isLoggedIn.set(true);
-        this.isInitialized.set(true);
-      },
-      error: () => {
-        // Token is invalid, clean up
-        this.removeToken();
-        this.currentUser.set(null);
-        this.isLoggedIn.set(false);
-        this.isInitialized.set(true);
-      }
-    });
-  }
-
+    try {
+      const user = await firstValueFrom(
+        this.http.get<UserResponse>(`${this.apiUrl}/me`)
+      );
+      this.currentUser.set(user);
+      this.isLoggedIn.set(true);
+    } catch {
+      localStorage.removeItem('access_token');
+      this.currentUser.set(null);
+      this.isLoggedIn.set(false);
+    }
     
-
-  private saveToken(token: string): void {
-    localStorage.setItem('access_token', token);
+    this.isInitialized.set(true);
   }
 
   getToken(): string | null {
     return localStorage.getItem('access_token');
   }
 
+  private saveToken(token: string): void {
+    localStorage.setItem('access_token', token);
+  }
+
   private removeToken(): void {
     localStorage.removeItem('access_token');
   }
 
-  login(email: string, password: string): Promise<UserResponse> {
+  async login(email: string, password: string): Promise<UserResponse> {
     const formData = new FormData();
     formData.append('username', email);
     formData.append('password', password);
 
-    return new Promise((resolve, reject) => {
-      this.http.post<LoginResponse>(`${this.apiUrl}/login`, formData).subscribe({
-        next: async (response) => {
-          this.saveToken(response.access_token);
-          this.isLoggedIn.set(true);
-          
-          try {
-            const user = await this.fetchCurrentUser();
-            resolve(user);
-          } catch (error) {
-            reject(error);
-          }
-        },
-        error: (error) => {
-          reject(error.error?.detail || 'Login failed');
-        }
-      });
-    });
+    const response = await firstValueFrom(
+      this.http.post<LoginResponse>(`${this.apiUrl}/login`, formData)
+    );
+    
+    this.saveToken(response.access_token);
+    
+    const user = await firstValueFrom(
+      this.http.get<UserResponse>(`${this.apiUrl}/me`)
+    );
+    
+    this.currentUser.set(user);
+    this.isLoggedIn.set(true);
+    
+    return user;
   }
 
-  register(email: string, password: string, role: string): Promise<boolean> {
+  async register(email: string, password: string, role: string): Promise<boolean> {
     const body: RegisterRequest = { email, password, role };
-
-    return new Promise((resolve, reject) => {
-      this.http.post<UserResponse>(`${this.apiUrl}/register`, body).subscribe({
-        next: () => resolve(true),
-        error: (error) => reject(error.error?.detail || 'Registration failed')
-      });
-    });
-  }
-
-  fetchCurrentUser(): Promise<UserResponse> {
-    return new Promise((resolve, reject) => {
-      this.http.get<UserResponse>(`${this.apiUrl}/me`).subscribe({
-        next: (user) => {
-          this.currentUser.set(user);
-          resolve(user);
-        },
-        error: (error) => {
-          reject(error.error?.detail || 'Failed to fetch user');
-        }
-      });
-    });
+    await firstValueFrom(
+      this.http.post<UserResponse>(`${this.apiUrl}/register`, body)
+    );
+    return true;
   }
 
   logout(): void {
@@ -134,19 +105,3 @@ export class AuthService {
     this.router.navigate(['/auth/login']);
   }
 }
-// signUp(email: string, password: string, role: string): Promise<boolean> {
-  //   const body: RegisterRequest = { email, password, role };
-
-  //   return new Promise((resolve, reject) => {
-  //     this.http.post<UserResponse>(`${this.apiUrl}/users`, body)
-  //       .subscribe({
-  //         next: () => {
-  //           resolve(true);
-  //         },
-  //         error: (error) => {
-  //           console.error('Sign up failed:', error);
-  //           reject(error.error?.detail || 'Sign up failed');
-  //         }
-  //       });
-  //   });
-  // }

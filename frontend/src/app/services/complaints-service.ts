@@ -72,7 +72,10 @@ export class ComplaintsService {
           this.loadComplaints();
           resolve(created);
         },
-        error: (error) => reject(error.error?.detail || 'Failed to create complaint')
+        error: (error) => {
+          const message = error.error?.detail || error.message || 'Failed to create complaint';
+          reject(message);
+        }
       });
     });
   }

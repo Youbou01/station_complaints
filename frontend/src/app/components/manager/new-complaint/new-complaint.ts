@@ -54,8 +54,15 @@ export class NewComplaint {
         severity: data.severity
       });
       this.router.navigate(['/manager/complaints']);
-    } catch (error) {
-      this.errorMessage.set(error as string);
+    } catch (error: unknown) {
+      // Properly handle error - it could be a string or an object
+      if (typeof error === 'string') {
+        this.errorMessage.set(error);
+      } else if (error instanceof Error) {
+        this.errorMessage.set(error.message);
+      } else {
+        this.errorMessage.set('Failed to create complaint. You may not be assigned to a station.');
+      }
     } finally {
       this.isLoading.set(false);
     }
