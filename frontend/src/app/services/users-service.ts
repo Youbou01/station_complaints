@@ -77,4 +77,16 @@ export class UsersService {
       });
     });
   }
+
+  createUser(email: string, password: string, role: string): Promise<User> {
+    return new Promise((resolve, reject) => {
+      this.http.post<User>(`${this.apiUrl}/users`, { email, password, role }).subscribe({
+        next: (user) => {
+          this.loadUsers();
+          resolve(user);
+        },
+        error: (error) => reject(error.error?.detail || 'Failed to create user')
+      });
+    });
+  }
 }
