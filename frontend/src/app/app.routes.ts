@@ -55,6 +55,42 @@ export const routes: Routes = [
       }
     ]
   },
+  // Manager Routes
+  {
+    path: 'manager',
+    loadComponent: () => import('./components/manager/manager-layout/manager-layout').then(m => m.ManagerLayout),
+    canActivate: [authGuard, roleGuard(['manager'])],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', loadComponent: () => import('./components/manager/manager-dashboard/manager-dashboard').then(m => m.ManagerDashboard) },
+      { path: 'complaints', loadComponent: () => import('./components/manager/manager-complaints/manager-complaints').then(m => m.ManagerComplaints) },
+      { path: 'new-complaint', loadComponent: () => import('./components/manager/new-complaint/new-complaint').then(m => m.NewComplaint) }
+    ]
+  },
+
+  // Assistant Routes
+  {
+    path: 'assistant',
+    loadComponent: () => import('./components/assistant/assistant-layout/assistant-layout').then(m => m.AssistantLayout),
+    canActivate: [authGuard, roleGuard(['assistant'])],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', loadComponent: () => import('./components/assistant/assistant-dashboard/assistant-dashboard').then(m => m.AssistantDashboard) },
+      { path: 'complaints', loadComponent: () => import('./components/assistant/assistant-complaints/assistant-complaints').then(m => m.AssistantComplaints) }
+    ]
+  },
+
+  // Intervenant Routes
+  {
+    path: 'intervenant',
+    loadComponent: () => import('./components/intervenant/intervenant-layout/intervenant-layout').then(m => m.IntervenantLayout),
+    canActivate: [authGuard, roleGuard(['intervenant'])],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', loadComponent: () => import('./components/intervenant/intervenant-dashboard/intervenant-dashboard').then(m => m.IntervenantDashboard) },
+      { path: 'complaints', loadComponent: () => import('./components/intervenant/intervenant-complaints/intervenant-complaints').then(m => m.IntervenantComplaints) }
+    ]
+  },
   {
     path: '**',
     redirectTo: 'auth/login'

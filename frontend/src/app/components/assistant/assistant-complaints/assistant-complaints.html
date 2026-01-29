@@ -1,0 +1,132 @@
+<div class="complaints-page">
+  <h1 class="page-title">All Complaints</h1>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  @if (complaintsService.isLoading()) {
+    <div class="loading">Loading complaints...</div>
+  } @else if (complaintsService.complaints().length === 0) {
+    <div class="empty-state">No complaints found.</div>
+  } @else {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Station</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (complaint of complaintsService.complaints(); track complaint.id) {
+            <tr>
+              <td class="id-cell">#{{ complaint.id }}</td>
+              <td class="title-cell">{{ complaint.title }}</td>
+              <td>{{ getStationName(complaint.station_id) }}</td>
+              <td>
+                <span class="type-badge">{{ getTypeLabel(complaint.type) }}</span>
+              </td>
+              <td>
+                <span class="status-badge status-{{ complaint.status }}">
+                  {{ getStatusLabel(complaint.status) }}
+                </span>
+              </td>
+              <td class="date-cell">{{ complaint.created_at | date:'short' }}</td>
+              <td class="actions-cell">
+                @if (complaint.status === 'open' || complaint.status === 'assigned') {
+                  <button (click)="openAssignModal(complaint)" class="action-btn assign">
+                    Assign
+                  </button>
+                }
+                <button (click)="openStatusModal(complaint)" class="action-btn status">
+                  Status
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (showAssignModal()) {
+  <div class="modal-overlay" (click)="closeAssignModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Assign Complaint #{{ selectedComplaint()?.id }}</h2>
+      <p>Select an intervenant:</p>
+      
+      <div class="option-list">
+        @for (int of intervenants(); track int.id) {
+          <button 
+            (click)="selectIntervenant(int.id)" 
+            class="option-btn"
+            [class.selected]="selectedIntervenantId() === int.id"
+          >
+            {{ int.email }}
+          </button>
+        }
+      </div>
+
+      <div class="modal-actions">
+        <button (click)="closeAssignModal()" class="btn-cancel">Cancel</button>
+        <button 
+          (click)="assignComplaint()" 
+          [disabled]="!selectedIntervenantId()"
+          class="btn-confirm"
+        >
+          Assign
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showStatusModal()) {
+  <div class="modal-overlay" (click)="closeStatusModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Update Status</h2>
+      
+      <div class="option-list">
+        @for (status of statuses; track status.value) {
+          <button 
+            (click)="selectStatus(status.value)" 
+            class="option-btn"
+            [class.selected]="selectedStatus() === status.value"
+          >
+            {{ status.label }}
+          </button>
+        }
+      </div>
+
+      @if (selectedStatus() === 'resolved' || selectedStatus() === 'rejected') {
+        <div class="notes-group">
+          <label>Notes</label>
+          <textarea 
+            [value]="resolutionNotes()"
+            (input)="resolutionNotes.set($any($event.target).value)"
+            placeholder="Add notes..."
+            rows="3"
+          ></textarea>
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button (click)="closeStatusModal()" class="btn-cancel">Cancel</button>
+        <button 
+          (click)="updateStatus()" 
+          [disabled]="!selectedStatus()"
+          class="btn-confirm"
+        >
+          Update
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,63 @@
+<div class="dashboard">
+  <h1 class="page-title">Welcome back!</h1>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading">Loading...</div>
+  } @else {
+    @if (station(); as s) {
+      <div class="station-card">
+        <div class="station-header">
+          <h2>Your Station</h2>
+          <span class="station-code">{{ s.code }}</span>
+        </div>
+        <div class="station-info">
+          <div class="info-item">
+            <span class="info-label">Name</span>
+            <span class="info-value">{{ s.name }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Governorate</span>
+            <span class="info-value">{{ s.governorate }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Address</span>
+            <span class="info-value">{{ s.address || 'Not specified' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2>Complaints Overview</h2>
+        <a routerLink="/manager/new-complaint" class="btn-new">New Complaint</a>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-value">{{ totalComplaints }}</span>
+          <span class="stat-label">Total</span>
+        </div>
+        <div class="stat-card open">
+          <span class="stat-value">{{ openComplaints }}</span>
+          <span class="stat-label">Open</span>
+        </div>
+        <div class="stat-card progress">
+          <span class="stat-value">{{ inProgressComplaints }}</span>
+          <span class="stat-label">In Progress</span>
+        </div>
+        <div class="stat-card resolved">
+          <span class="stat-value">{{ resolvedComplaints }}</span>
+          <span class="stat-label">Resolved</span>
+        </div>
+      </div>
+    } @else {
+      <div class="no-station">
+        <h2>No Station Assigned</h2>
+        <p>You are not assigned to any station yet. Please contact the administrator.</p>
+      </div>
+    }
+  }
+</div>

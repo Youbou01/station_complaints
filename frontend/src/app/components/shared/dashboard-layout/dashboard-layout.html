@@ -1,0 +1,30 @@
+<div class="layout-container">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <img src="https://agilenergy.com.tn/fr/images/logoagilenergy.jpg" alt="AGIL" class="sidebar-logo" />
+      <span class="sidebar-title">{{ title() }}</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      @for (item of navItems(); track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active" class="nav-item">
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      @if (authService.currentUser(); as user) {
+        <div class="user-info">
+          <span class="user-email">{{ user.email }}</span>
+          <span class="user-role">{{ user.role }}</span>
+        </div>
+      }
+      <button (click)="logout()" class="logout-btn">Logout</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <router-outlet />
+  </main>
+</div>

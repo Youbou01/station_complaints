@@ -1,0 +1,96 @@
+<div class="form-page">
+  <h1 class="page-title">New Complaint</h1>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  <div class="form-card">
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label>Title</label>
+        <input
+          type="text"
+          [formField]="complaintForm.title"
+          placeholder="Brief description of the issue"
+          class="form-input"
+        />
+        @if (complaintForm.title().invalid() && complaintForm.title().touched()) {
+          <div class="form-error">
+            @for (error of complaintForm.title().errors(); track error.kind) {
+              <span>{{ error.message }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea
+          [formField]="complaintForm.description"
+          placeholder="Provide detailed information about the issue..."
+          rows="5"
+          class="form-input"
+        ></textarea>
+        @if (complaintForm.description().invalid() && complaintForm.description().touched()) {
+          <div class="form-error">
+            @for (error of complaintForm.description().errors(); track error.kind) {
+              <span>{{ error.message }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Complaint Type</label>
+        <div class="option-grid">
+          @for (type of types; track type.value) {
+            <button
+              type="button"
+              (click)="selectType(type.value)"
+              class="option-btn"
+              [class.selected]="complaintModel().type === type.value"
+            >
+              {{ type.label }}
+            </button>
+          }
+        </div>
+        @if (complaintForm.type().invalid() && complaintForm.type().touched()) {
+          <div class="form-error">Please select a complaint type</div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Severity Level</label>
+        <div class="severity-options">
+          @for (level of severityLevels; track level.value) {
+            <button
+              type="button"
+              (click)="selectSeverity(level.value)"
+              class="severity-btn severity-{{ level.value }}"
+              [class.selected]="complaintModel().severity === level.value"
+            >
+              <span class="severity-value">{{ level.value }}</span>
+              <span class="severity-label">{{ level.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" (click)="cancel()" class="btn-cancel">Cancel</button>
+        <button 
+          type="submit" 
+          [disabled]="complaintForm().invalid() || isLoading()" 
+          class="btn-submit"
+        >
+          @if (isLoading()) {
+            Submitting...
+          } @else {
+            Submit Complaint
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

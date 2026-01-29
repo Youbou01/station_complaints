@@ -1,0 +1,147 @@
+.dashboard {
+  max-width: 900px;
+}
+
+.page-title {
+  font-size: 24px;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card.highlight {
+  border-top: 4px solid #F7C600;
+  background-color: #fffbeb;
+}
+
+.stat-card.progress {
+  border-top: 4px solid #8b5cf6;
+}
+
+.stat-card.resolved {
+  border-top: 4px solid #22c55e;
+}
+
+.stat-value {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #6b6b6b;
+}
+
+.section {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  font-size: 18px;
+  color: #1a1a1a;
+}
+
+.view-all {
+  color: #F7C600;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 24px;
+  color: #6b6b6b;
+}
+
+.complaints-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.complaint-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.complaint-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.complaint-id {
+  font-family: monospace;
+  color: #6b6b6b;
+  font-size: 14px;
+}
+
+.complaint-title {
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.complaint-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-assigned {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.status-in_progress {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.action-link {
+  color: #0369a1;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.action-link:hover {
+  text-decoration: underline;
+}

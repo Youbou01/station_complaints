@@ -1,0 +1,126 @@
+.complaints-page {
+  max-width: 800px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 24px;
+  color: #1a1a1a;
+}
+
+.btn-new {
+  padding: 10px 20px;
+  background-color: #F7C600;
+  color: #1a1a1a;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.loading, .empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #6b6b6b;
+  background-color: #ffffff;
+  border-radius: 12px;
+}
+
+.empty-state .btn-new {
+  display: inline-block;
+  margin-top: 16px;
+}
+
+.complaints-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.complaint-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.complaint-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.complaint-id {
+  font-family: monospace;
+  color: #6b6b6b;
+  font-size: 14px;
+}
+
+.complaint-title {
+  font-size: 18px;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.complaint-desc {
+  color: #6b6b6b;
+  font-size: 14px;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.complaint-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.type-badge {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.severity-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.severity-1 { background-color: #dcfce7; color: #166534; }
+.severity-2 { background-color: #fef9c3; color: #854d0e; }
+.severity-3 { background-color: #fed7aa; color: #9a3412; }
+.severity-4 { background-color: #fecaca; color: #dc2626; }
+.severity-5 { background-color: #fee2e2; color: #991b1b; }
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-open { background-color: #dbeafe; color: #1d4ed8; }
+.status-assigned { background-color: #fef3c7; color: #b45309; }
+.status-in_progress { background-color: #e0e7ff; color: #4338ca; }
+.status-resolved { background-color: #dcfce7; color: #166534; }
+.status-rejected { background-color: #fee2e2; color: #991b1b; }
+
+.date {
+  font-size: 13px;
+  color: #6b6b6b;
+  margin-left: auto;
+}

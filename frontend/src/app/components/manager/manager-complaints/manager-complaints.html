@@ -1,0 +1,37 @@
+<div class="complaints-page">
+  <div class="page-header">
+    <h1 class="page-title">My Complaints</h1>
+    <a routerLink="/manager/new-complaint" class="btn-new">New Complaint</a>
+  </div>
+
+  @if (complaintsService.isLoading()) {
+    <div class="loading">Loading complaints...</div>
+  } @else if (complaintsService.complaints().length === 0) {
+    <div class="empty-state">
+      <p>No complaints yet.</p>
+      <a routerLink="/manager/new-complaint" class="btn-new">Create your first complaint</a>
+    </div>
+  } @else {
+    <div class="complaints-list">
+      @for (complaint of complaintsService.complaints(); track complaint.id) {
+        <div class="complaint-card">
+          <div class="complaint-header">
+            <span class="complaint-id">#{{ complaint.id }}</span>
+            <span class="status-badge status-{{ complaint.status }}">
+              {{ getStatusLabel(complaint.status) }}
+            </span>
+          </div>
+          <h3 class="complaint-title">{{ complaint.title }}</h3>
+          <p class="complaint-desc">{{ complaint.description }}</p>
+          <div class="complaint-meta">
+            <span class="type-badge">{{ getTypeLabel(complaint.type) }}</span>
+            <span class="severity-badge severity-{{ complaint.severity }}">
+              {{ getSeverityLabel(complaint.severity) }}
+            </span>
+            <span class="date">{{ complaint.created_at | date:'mediumDate' }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

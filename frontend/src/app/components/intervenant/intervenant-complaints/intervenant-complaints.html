@@ -1,0 +1,125 @@
+<p>intervenant-complaints works!</p>
+<div class="complaints-page">
+  <h1 class="page-title">My Assignments</h1>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  @if (complaintsService.isLoading()) {
+    <div class="loading">Loading complaints...</div>
+  } @else if (complaintsService.complaints().length === 0) {
+    <div class="empty-state">No complaints assigned to you.</div>
+  } @else {
+    <div class="complaints-list">
+      @for (complaint of complaintsService.complaints(); track complaint.id) {
+        <div class="complaint-card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <span class="complaint-id">#{{ complaint.id }}</span>
+              <span class="status-badge status-{{ complaint.status }}">
+                {{ getStatusLabel(complaint.status) }}
+              </span>
+            </div>
+            <div class="card-header-right">
+              <span class="severity-badge severity-{{ complaint.severity }}">
+                {{ getSeverityLabel(complaint.severity) }}
+              </span>
+            </div>
+          </div>
+
+          <h3 class="complaint-title">{{ complaint.title }}</h3>
+          <p class="complaint-desc">{{ complaint.description }}</p>
+
+          <div class="complaint-meta">
+            <div class="meta-item">
+              <span class="meta-label">Station</span>
+              <span class="meta-value">{{ getStationName(complaint.station_id) }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Type</span>
+              <span class="meta-value">{{ getTypeLabel(complaint.type) }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Created</span>
+              <span class="meta-value">{{ complaint.created_at | date:'mediumDate' }}</span>
+            </div>
+          </div>
+
+          @if (complaint.resolution_notes) {
+            <div class="resolution-notes">
+              <span class="notes-label">Resolution Notes:</span>
+              <p>{{ complaint.resolution_notes }}</p>
+            </div>
+          }
+
+          <div class="card-actions">
+            @if (complaint.status === 'assigned') {
+              <button (click)="quickStart(complaint)" class="btn-start">
+                Start Working
+              </button>
+            }
+            @if (complaint.status === 'assigned' || complaint.status === 'in_progress') {
+              <button (click)="openModal(complaint)" class="btn-update">
+                Update Status
+              </button>
+            }
+            @if (complaint.status === 'resolved') {
+              <span class="resolved-text">Completed</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Update Complaint #{{ selectedComplaint()?.id }}</h2>
+      
+      <div class="status-options">
+        <button 
+          (click)="selectStatus('in_progress')" 
+          class="status-option"
+          [class.selected]="selectedStatus() === 'in_progress'"
+        >
+          <span class="option-title">In Progress</span>
+          <span class="option-desc">Mark as currently being worked on</span>
+        </button>
+        <button 
+          (click)="selectStatus('resolved')" 
+          class="status-option"
+          [class.selected]="selectedStatus() === 'resolved'"
+        >
+          <span class="option-title">Resolved</span>
+          <span class="option-desc">Mark as completed</span>
+        </button>
+      </div>
+
+      @if (selectedStatus() === 'resolved') {
+        <div class="notes-group">
+          <label>Resolution Notes (recommended)</label>
+          <textarea 
+            [value]="resolutionNotes()"
+            (input)="resolutionNotes.set($any($event.target).value)"
+            placeholder="Describe what was done to resolve the issue..."
+            rows="4"
+          ></textarea>
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button (click)="closeModal()" class="btn-cancel">Cancel</button>
+        <button 
+          (click)="updateStatus()" 
+          [disabled]="!selectedStatus()"
+          class="btn-confirm"
+        >
+          Update
+        </button>
+      </div>
+    </div>
+  </div>
+}

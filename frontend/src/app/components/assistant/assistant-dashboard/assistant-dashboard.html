@@ -1,0 +1,68 @@
+<div class="dashboard">
+  <h1 class="page-title">Assistant Dashboard</h1>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-value">{{ totalStations }}</span>
+      <span class="stat-label">Stations</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ totalComplaints }}</span>
+      <span class="stat-label">Total Complaints</span>
+    </div>
+    <div class="stat-card highlight">
+      <span class="stat-value">{{ openComplaints }}</span>
+      <span class="stat-label">Need Assignment</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ assignedComplaints + inProgressComplaints }}</span>
+      <span class="stat-label">In Progress</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ resolvedComplaints }}</span>
+      <span class="stat-label">Resolved</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h2>Recent Complaints</h2>
+      <a routerLink="/assistant/complaints" class="view-all">View All</a>
+    </div>
+
+    @if (recentComplaints.length === 0) {
+      <div class="empty-state">No complaints yet.</div>
+    } @else {
+      <div class="complaints-table">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (complaint of recentComplaints; track complaint.id) {
+              <tr>
+                <td class="id-cell">#{{ complaint.id }}</td>
+                <td>{{ complaint.title }}</td>
+                <td>
+                  <span class="status-badge status-{{ complaint.status }}">
+                    {{ complaint.status }}
+                  </span>
+                </td>
+                <td>
+                  <a [routerLink]="['/assistant/complaints', complaint.id]" class="action-link">
+                    View
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

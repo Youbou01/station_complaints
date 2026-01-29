@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { DashboardLayout } from "./components/shared/dashboard-layout/dashboard-layout";
 
 
 @Component({
