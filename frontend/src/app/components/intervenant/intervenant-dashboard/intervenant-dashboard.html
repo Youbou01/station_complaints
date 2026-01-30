@@ -18,6 +18,12 @@
       <span class="stat-value">{{ resolvedComplaints }}</span>
       <span class="stat-label">Resolved</span>
     </div>
+    @if (ratings().length > 0) {
+      <div class="stat-card rating">
+        <span class="stat-value">★ {{ averageRating() }}</span>
+        <span class="stat-label">Average Rating</span>
+      </div>
+    }
   </div>
 
   <div class="section">

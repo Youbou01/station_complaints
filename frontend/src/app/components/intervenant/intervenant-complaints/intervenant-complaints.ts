@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 
 import { Complaint, COMPLAINT_TYPES, COMPLAINT_STATUSES, SEVERITY_LEVELS, ComplaintStatus } from '../../../models/complaint';
 import { StationsService } from '../../../services/stations-service';
@@ -14,6 +15,7 @@ import { ComplaintsService } from '../../../services/complaints-service';
 export class IntervenantComplaints implements OnInit {
   complaintsService = inject(ComplaintsService);
   stationsService = inject(StationsService);
+  private http = inject(HttpClient);
 
   types = COMPLAINT_TYPES;
   statuses = COMPLAINT_STATUSES;
@@ -26,10 +28,29 @@ export class IntervenantComplaints implements OnInit {
   showRejectModal = signal(false);
   successMessage = signal('');
   errorMessage = signal('');
+  ratings = signal<Map<number, any>>(new Map());
 
   ngOnInit() {
     this.complaintsService.loadComplaints();
     this.stationsService.loadStations();
+    this.loadRatings();
+  }
+
+  async loadRatings() {
+    try {
+      const data = await this.http.get<any[]>('http://localhost:8000/ratings').toPromise();
+      const ratingsMap = new Map();
+      data?.forEach((rating: any) => {
+        ratingsMap.set(rating.complaint_id, rating);
+      });
+      this.ratings.set(ratingsMap);
+    } catch (error) {
+      console.error('Failed to load ratings');
+    }
+  }
+
+  getComplaintRating(complaintId: number): any | null {
+    return this.ratings().get(complaintId) || null;
   }
 
   getStationName(stationId: number): string {

@@ -75,6 +75,9 @@
             }
             @if (complaint.status === 'resolved') {
               <span class="resolved-text">✓ Completed</span>
+              @if (getComplaintRating(complaint.id)) {
+                <span class="rating-display">★ {{ getComplaintRating(complaint.id).rating_score }}/5</span>
+              }
             }
             @if (complaint.status === 'rejected') {
               <span class="rejected-text">✗ Rejected</span>
