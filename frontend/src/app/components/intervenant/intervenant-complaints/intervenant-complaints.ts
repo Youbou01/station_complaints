@@ -23,6 +23,8 @@ export class IntervenantComplaints implements OnInit {
   selectedStatus = signal<ComplaintStatus | null>(null);
   resolutionNotes = signal('');
   showModal = signal(false);
+  showRejectModal = signal(false);
+  successMessage = signal('');
   errorMessage = signal('');
 
   ngOnInit() {
@@ -59,6 +61,17 @@ export class IntervenantComplaints implements OnInit {
     this.showModal.set(false);
   }
 
+  openRejectModal(complaint: Complaint) {
+    this.selectedComplaint.set(complaint);
+    this.showRejectModal.set(true);
+  }
+
+  closeRejectModal() {
+    this.selectedComplaint.set(null);
+    this.resolutionNotes.set('');
+    this.showRejectModal.set(false);
+  }
+
   selectStatus(status: ComplaintStatus) {
     this.selectedStatus.set(status);
   }
@@ -71,15 +84,33 @@ export class IntervenantComplaints implements OnInit {
 
     try {
       await this.complaintsService.updateStatus(complaint.id, status, this.resolutionNotes() || undefined);
+      this.successMessage.set('Status updated successfully');
       this.closeModal();
+      setTimeout(() => this.successMessage.set(''), 3000);
     } catch (error) {
       this.errorMessage.set(error as string);
     }
   }
 
-  async quickStart(complaint: Complaint) {
+  async handleComplaint(complaint: Complaint) {
     try {
       await this.complaintsService.updateStatus(complaint.id, 'in_progress');
+      this.successMessage.set('Complaint marked as in progress');
+      setTimeout(() => this.successMessage.set(''), 3000);
+    } catch (error) {
+      this.errorMessage.set(error as string);
+    }
+  }
+
+  async rejectComplaint() {
+    const complaint = this.selectedComplaint();
+    if (!complaint) return;
+
+    try {
+      await this.complaintsService.updateStatus(complaint.id, 'rejected', this.resolutionNotes() || undefined);
+      this.successMessage.set('Complaint rejected');
+      this.closeRejectModal();
+      setTimeout(() => this.successMessage.set(''), 3000);
     } catch (error) {
       this.errorMessage.set(error as string);
     }
