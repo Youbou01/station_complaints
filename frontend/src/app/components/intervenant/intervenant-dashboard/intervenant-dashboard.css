@@ -10,7 +10,7 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
   margin-bottom: 32px;
 }
@@ -34,6 +34,11 @@
 
 .stat-card.resolved {
   border-top: 4px solid #22c55e;
+}
+
+.stat-card.rating {
+  border-top: 4px solid #F7C600;
+  background-color: #fffbeb;
 }
 
 .stat-value {

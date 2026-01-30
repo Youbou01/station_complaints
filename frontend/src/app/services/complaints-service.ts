@@ -141,4 +141,16 @@ export class ComplaintsService {
       });
     });
   }
+
+  sendComplaint(complaintId: number): Promise<Complaint> {
+    return new Promise((resolve, reject) => {
+      this.http.post<Complaint>(`${this.apiUrl}/complaints/${complaintId}/send`, {}).subscribe({
+        next: (updated) => {
+          this.loadComplaints();
+          resolve(updated);
+        },
+        error: (error) => reject(error.error?.detail || 'Failed to send complaint')
+      });
+    });
+  }
 }

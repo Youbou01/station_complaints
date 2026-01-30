@@ -67,6 +67,11 @@
   color: #6b6b6b;
 }
 
+.stat-icon.station-icon {
+  background-color: #f3f4f6;
+  color: #1a1a1a;
+}
+
 .stat-icon.active-icon {
   background-color: #dcfce7;
   color: #166534;

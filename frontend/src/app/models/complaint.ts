@@ -41,6 +41,7 @@ export interface Complaint {
   created_at: string;
   updated_at: string | null;
   resolved_at: string | null;
+  assigned_at: string | null;
 }
 
 export interface ComplaintDetail extends Complaint {

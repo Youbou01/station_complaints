@@ -1,6 +1,9 @@
-<p>intervenant-complaints works!</p>
 <div class="complaints-page">
   <h1 class="page-title">My Assignments</h1>
+
+  @if (successMessage()) {
+    <div class="success-banner">{{ successMessage() }}</div>
+  }
 
   @if (errorMessage()) {
     <div class="error-banner">{{ errorMessage() }}</div>
@@ -55,17 +58,29 @@
 
           <div class="card-actions">
             @if (complaint.status === 'assigned') {
-              <button (click)="quickStart(complaint)" class="btn-start">
-                Start Working
+              <button (click)="handleComplaint(complaint)" class="btn-handle">
+                Handle
+              </button>
+              <button (click)="openRejectModal(complaint)" class="btn-reject">
+                Reject
               </button>
             }
-            @if (complaint.status === 'assigned' || complaint.status === 'in_progress') {
+            @if (complaint.status === 'in_progress') {
               <button (click)="openModal(complaint)" class="btn-update">
                 Update Status
               </button>
+              <button (click)="openRejectModal(complaint)" class="btn-reject">
+                Reject
+              </button>
             }
             @if (complaint.status === 'resolved') {
-              <span class="resolved-text">Completed</span>
+              <span class="resolved-text">✓ Completed</span>
+              @if (getComplaintRating(complaint.id)) {
+                <span class="rating-display">★ {{ getComplaintRating(complaint.id).rating_score }}/5</span>
+              }
+            }
+            @if (complaint.status === 'rejected') {
+              <span class="rejected-text">✗ Rejected</span>
             }
           </div>
         </div>
@@ -80,14 +95,6 @@
       <h2>Update Complaint #{{ selectedComplaint()?.id }}</h2>
       
       <div class="status-options">
-        <button 
-          (click)="selectStatus('in_progress')" 
-          class="status-option"
-          [class.selected]="selectedStatus() === 'in_progress'"
-        >
-          <span class="option-title">In Progress</span>
-          <span class="option-desc">Mark as currently being worked on</span>
-        </button>
         <button 
           (click)="selectStatus('resolved')" 
           class="status-option"
@@ -118,6 +125,36 @@
           class="btn-confirm"
         >
           Update
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showRejectModal()) {
+  <div class="modal-overlay" (click)="closeRejectModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Reject Complaint #{{ selectedComplaint()?.id }}</h2>
+      <p>Please provide a reason for rejection:</p>
+      
+      <div class="notes-group">
+        <label>Rejection Reason *</label>
+        <textarea 
+          [value]="resolutionNotes()"
+          (input)="resolutionNotes.set($any($event.target).value)"
+          placeholder="Explain why this complaint cannot be handled..."
+          rows="4"
+        ></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button (click)="closeRejectModal()" class="btn-cancel">Cancel</button>
+        <button 
+          (click)="rejectComplaint()" 
+          [disabled]="!resolutionNotes()"
+          class="btn-confirm btn-reject-confirm"
+        >
+          Reject
         </button>
       </div>
     </div>

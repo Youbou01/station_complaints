@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 
 import { Complaint, COMPLAINT_TYPES, COMPLAINT_STATUSES, SEVERITY_LEVELS, ComplaintStatus } from '../../../models/complaint';
 import { StationsService } from '../../../services/stations-service';
@@ -14,6 +15,7 @@ import { ComplaintsService } from '../../../services/complaints-service';
 export class IntervenantComplaints implements OnInit {
   complaintsService = inject(ComplaintsService);
   stationsService = inject(StationsService);
+  private http = inject(HttpClient);
 
   types = COMPLAINT_TYPES;
   statuses = COMPLAINT_STATUSES;
@@ -23,11 +25,32 @@ export class IntervenantComplaints implements OnInit {
   selectedStatus = signal<ComplaintStatus | null>(null);
   resolutionNotes = signal('');
   showModal = signal(false);
+  showRejectModal = signal(false);
+  successMessage = signal('');
   errorMessage = signal('');
+  ratings = signal<Map<number, any>>(new Map());
 
   ngOnInit() {
     this.complaintsService.loadComplaints();
     this.stationsService.loadStations();
+    this.loadRatings();
+  }
+
+  async loadRatings() {
+    try {
+      const data = await this.http.get<any[]>('http://localhost:8000/ratings').toPromise();
+      const ratingsMap = new Map();
+      data?.forEach((rating: any) => {
+        ratingsMap.set(rating.complaint_id, rating);
+      });
+      this.ratings.set(ratingsMap);
+    } catch (error) {
+      console.error('Failed to load ratings');
+    }
+  }
+
+  getComplaintRating(complaintId: number): any | null {
+    return this.ratings().get(complaintId) || null;
   }
 
   getStationName(stationId: number): string {
@@ -59,6 +82,17 @@ export class IntervenantComplaints implements OnInit {
     this.showModal.set(false);
   }
 
+  openRejectModal(complaint: Complaint) {
+    this.selectedComplaint.set(complaint);
+    this.showRejectModal.set(true);
+  }
+
+  closeRejectModal() {
+    this.selectedComplaint.set(null);
+    this.resolutionNotes.set('');
+    this.showRejectModal.set(false);
+  }
+
   selectStatus(status: ComplaintStatus) {
     this.selectedStatus.set(status);
   }
@@ -71,15 +105,33 @@ export class IntervenantComplaints implements OnInit {
 
     try {
       await this.complaintsService.updateStatus(complaint.id, status, this.resolutionNotes() || undefined);
+      this.successMessage.set('Status updated successfully');
       this.closeModal();
+      setTimeout(() => this.successMessage.set(''), 3000);
     } catch (error) {
       this.errorMessage.set(error as string);
     }
   }
 
-  async quickStart(complaint: Complaint) {
+  async handleComplaint(complaint: Complaint) {
     try {
       await this.complaintsService.updateStatus(complaint.id, 'in_progress');
+      this.successMessage.set('Complaint marked as in progress');
+      setTimeout(() => this.successMessage.set(''), 3000);
+    } catch (error) {
+      this.errorMessage.set(error as string);
+    }
+  }
+
+  async rejectComplaint() {
+    const complaint = this.selectedComplaint();
+    if (!complaint) return;
+
+    try {
+      await this.complaintsService.updateStatus(complaint.id, 'rejected', this.resolutionNotes() || undefined);
+      this.successMessage.set('Complaint rejected');
+      this.closeRejectModal();
+      setTimeout(() => this.successMessage.set(''), 3000);
     } catch (error) {
       this.errorMessage.set(error as string);
     }

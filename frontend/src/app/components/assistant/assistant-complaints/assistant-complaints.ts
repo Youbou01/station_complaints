@@ -22,11 +22,10 @@ export class AssistantComplaints implements OnInit {
   selectedComplaint = signal<Complaint | null>(null);
   intervenants = signal<{ id: number; email: string }[]>([]);
   selectedIntervenantId = signal<number | null>(null);
-  selectedStatus = signal<ComplaintStatus | null>(null);
-  resolutionNotes = signal('');
   
   showAssignModal = signal(false);
-  showStatusModal = signal(false);
+  showSendModal = signal(false);
+  successMessage = signal('');
   errorMessage = signal('');
 
   ngOnInit() {
@@ -57,6 +56,30 @@ export class AssistantComplaints implements OnInit {
     return this.statuses.find(s => s.value === status)?.label || status;
   }
 
+  openSendModal(complaint: Complaint) {
+    this.selectedComplaint.set(complaint);
+    this.showSendModal.set(true);
+  }
+
+  closeSendModal() {
+    this.selectedComplaint.set(null);
+    this.showSendModal.set(false);
+  }
+
+  async sendComplaint() {
+    const complaint = this.selectedComplaint();
+    if (!complaint) return;
+
+    try {
+      await this.complaintsService.sendComplaint(complaint.id);
+      this.successMessage.set('Complaint sent successfully to intervenant');
+      this.closeSendModal();
+      setTimeout(() => this.successMessage.set(''), 3000);
+    } catch (error) {
+      this.errorMessage.set(error as string);
+    }
+  }
+
   openAssignModal(complaint: Complaint) {
     this.selectedComplaint.set(complaint);
     this.showAssignModal.set(true);
@@ -80,37 +103,9 @@ export class AssistantComplaints implements OnInit {
 
     try {
       await this.complaintsService.assignComplaint(complaint.id, intervenantId);
+      this.successMessage.set('Complaint assigned successfully');
       this.closeAssignModal();
-    } catch (error) {
-      this.errorMessage.set(error as string);
-    }
-  }
-
-  openStatusModal(complaint: Complaint) {
-    this.selectedComplaint.set(complaint);
-    this.showStatusModal.set(true);
-  }
-
-  closeStatusModal() {
-    this.selectedComplaint.set(null);
-    this.selectedStatus.set(null);
-    this.resolutionNotes.set('');
-    this.showStatusModal.set(false);
-  }
-
-  selectStatus(status: ComplaintStatus) {
-    this.selectedStatus.set(status);
-  }
-
-  async updateStatus() {
-    const complaint = this.selectedComplaint();
-    const status = this.selectedStatus();
-    
-    if (!complaint || !status) return;
-
-    try {
-      await this.complaintsService.updateStatus(complaint.id, status, this.resolutionNotes() || undefined);
-      this.closeStatusModal();
+      setTimeout(() => this.successMessage.set(''), 3000);
     } catch (error) {
       this.errorMessage.set(error as string);
     }

@@ -25,10 +25,49 @@ export class DirectorComplaints implements OnInit {
   showRatingModal = signal(false);
   errorMessage = signal('');
   successMessage = signal('');
+  ratings = signal<Map<number, any>>(new Map());
 
   ngOnInit() {
     this.complaintsService.loadComplaints();
     this.stationsService.loadStations();
+    this.loadRatings();
+  }
+
+  async loadRatings() {
+    try {
+      const data = await this.http.get<any[]>('http://localhost:8000/ratings').toPromise();
+      const ratingsMap = new Map();
+      data?.forEach((rating: any) => {
+        ratingsMap.set(rating.complaint_id, rating);
+      });
+      this.ratings.set(ratingsMap);
+    } catch (error) {
+      console.error('Failed to load ratings');
+    }
+  }
+
+  getComplaintRating(complaintId: number): any | null {
+    return this.ratings().get(complaintId) || null;
+  }
+
+  calculateResolutionTime(complaint: Complaint): string {
+    if (!complaint.assigned_at || !complaint.resolved_at) {
+      return 'N/A';
+    }
+    
+    const assigned = new Date(complaint.assigned_at).getTime();
+    const resolved = new Date(complaint.resolved_at).getTime();
+    const diffMs = resolved - assigned;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+    const remainingHours = diffHours % 24;
+    
+    if (diffDays > 0) {
+      return `${diffDays}d ${remainingHours}h`;
+    } else {
+      const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      return `${diffHours}h ${diffMinutes}m`;
+    }
   }
 
   getStationName(stationId: number): string {
@@ -70,6 +109,7 @@ export class DirectorComplaints implements OnInit {
       next: () => {
         this.successMessage.set('Rating submitted successfully');
         this.closeRatingModal();
+        this.loadRatings(); // Reload ratings to update the UI
         setTimeout(() => this.successMessage.set(''), 3000);
       },
       error: (error) => {
