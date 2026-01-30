@@ -1120,8 +1120,12 @@ def create_rating(
             detail="Complaint already rated"
         )
     
-    # Calculate resolution time in hours
-    resolution_time = (complaint.resolved_at - complaint.created_at).total_seconds() / 3600
+    # Calculate resolution time in hours (from assignment to resolution)
+    if complaint.assigned_at:
+        resolution_time = (complaint.resolved_at - complaint.assigned_at).total_seconds() / 3600
+    else:
+        # Fallback to created_at if assigned_at is not set (for old complaints)
+        resolution_time = (complaint.resolved_at - complaint.created_at).total_seconds() / 3600
     
     db_rating = Rating(
         complaint_id=rating.complaint_id,

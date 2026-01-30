@@ -23,6 +23,8 @@
             <th>Station</th>
             <th>Type</th>
             <th>Status</th>
+            <th>Resolution Time</th>
+            <th>Rating</th>
             <th>Created</th>
             <th>Actions</th>
           </tr>
@@ -41,12 +43,28 @@
                   {{ getStatusLabel(complaint.status) }}
                 </span>
               </td>
+              <td class="resolution-time-cell">
+                @if (complaint.status === 'resolved') {
+                  <span class="resolution-time">{{ calculateResolutionTime(complaint) }}</span>
+                } @else {
+                  <span class="na-text">-</span>
+                }
+              </td>
+              <td>
+                @if (getComplaintRating(complaint.id)) {
+                  <span class="rating-display">★ {{ getComplaintRating(complaint.id).rating_score }}/5</span>
+                } @else {
+                  <span class="na-text">-</span>
+                }
+              </td>
               <td class="date-cell">{{ complaint.created_at | date:'short' }}</td>
               <td>
-                @if (complaint.status === 'resolved') {
+                @if (complaint.status === 'resolved' && !getComplaintRating(complaint.id)) {
                   <button (click)="openRatingModal(complaint)" class="action-btn rate">
                     Rate
                   </button>
+                } @else if (complaint.status === 'resolved') {
+                  <span class="rated-text">Rated</span>
                 }
               </td>
             </tr>

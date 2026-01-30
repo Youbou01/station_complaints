@@ -118,6 +118,32 @@
   font-weight: 600;
 }
 
+.resolution-time-cell {
+  font-size: 13px;
+}
+
+.resolution-time {
+  color: #1a1a1a;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.rating-display {
+  color: #F7C600;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.rated-text {
+  color: #22c55e;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.na-text {
+  color: #6b6b6b;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
