@@ -41,6 +41,24 @@
         }
       </div>
 
+      @if (managerStations().length > 1) {
+        <div class="form-group">
+          <label>Select Station</label>
+          <div class="option-grid">
+            @for (station of managerStations(); track station.id) {
+              <button
+                type="button"
+                (click)="selectStation(station.id)"
+                class="option-btn"
+                [class.selected]="complaintModel().station_id === station.id"
+              >
+                {{ station.name }} ({{ station.code }})
+              </button>
+            }
+          </div>
+        </div>
+      }
+
       <div class="form-group">
         <label>Complaint Type</label>
         <div class="option-grid">

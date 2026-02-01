@@ -79,6 +79,15 @@
   <div class="modal-overlay" (click)="closeRatingModal()">
     <div class="modal" (click)="$event.stopPropagation()">
       <h2>Rate Complaint #{{ selectedComplaint()?.id }}</h2>
+      
+      @if (selectedComplaint()?.manager_feedback) {
+        <div class="manager-feedback-display">
+          <span class="feedback-label">Manager Feedback:</span>
+          <p>{{ selectedComplaint()?.manager_feedback }}</p>
+          <span class="feedback-date">{{ selectedComplaint()?.manager_feedback_at | date:'medium' }}</span>
+        </div>
+      }
+      
       <p>Rate the intervenant's performance:</p>
 
       <div class="rating-options">

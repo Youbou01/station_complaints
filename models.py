@@ -59,6 +59,10 @@ class Complaint(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     resolved_at = Column(DateTime(timezone=True), nullable=True)
     assigned_at = Column(DateTime(timezone=True), nullable=True)
+    on_hold_at = Column(DateTime(timezone=True), nullable=True)
+    total_on_hold_seconds = Column(Float, default=0)
+    manager_feedback = Column(Text, nullable=True)
+    manager_feedback_at = Column(DateTime(timezone=True), nullable=True)
 
     station = relationship("Station", back_populates="complaints")
     created_by = relationship("User", back_populates="created_complaints", foreign_keys=[created_by_id])

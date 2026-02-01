@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { form, FormField } from '@angular/forms/signals';
 import { 
@@ -10,6 +10,8 @@ import {
   ComplaintType
 } from '../../../models/complaint';
 import { ComplaintsService } from '../../../services/complaints-service';
+import { StationsService, Station } from '../../../services/stations-service';
+import { AuthService } from '../../../services/auth-service';
 
 @Component({
   selector: 'app-new-complaint',
@@ -17,9 +19,11 @@ import { ComplaintsService } from '../../../services/complaints-service';
   templateUrl: './new-complaint.html',
   styleUrl: './new-complaint.css',
 })
-export class NewComplaint {
+export class NewComplaint implements OnInit {
   private router = inject(Router);
   private complaintsService = inject(ComplaintsService);
+  private stationsService = inject(StationsService);
+  private authService = inject(AuthService);
 
   complaintModel = signal<ComplaintFormData>(complaintInitialData);
   complaintForm = form(this.complaintModel, complaintSchema);
@@ -29,6 +33,16 @@ export class NewComplaint {
 
   isLoading = signal(false);
   errorMessage = signal('');
+  
+  managerStations = computed<Station[]>(() => {
+    const currentUser = this.authService.currentUser();
+    if (!currentUser) return [];
+    return this.stationsService.stations().filter(s => s.manager_id === currentUser.id);
+  });
+
+  ngOnInit() {
+    this.stationsService.loadStations();
+  }
 
   selectType(type: ComplaintType) {
     this.complaintModel.update(data => ({ ...data, type }));
@@ -36,6 +50,10 @@ export class NewComplaint {
 
   selectSeverity(severity: number) {
     this.complaintModel.update(data => ({ ...data, severity }));
+  }
+
+  selectStation(stationId: number) {
+    this.complaintModel.update(data => ({ ...data, station_id: stationId }));
   }
 
   async onSubmit(event: Event) {
@@ -60,6 +78,12 @@ export class NewComplaint {
       return;
     }
 
+    // If manager has multiple stations, require station selection
+    if (this.managerStations().length > 1 && !data.station_id) {
+      this.errorMessage.set('Please select a station');
+      return;
+    }
+
     this.isLoading.set(true);
     this.errorMessage.set('');
 
@@ -68,7 +92,8 @@ export class NewComplaint {
         title: data.title,
         description: data.description,
         type: data.type as ComplaintType,
-        severity: data.severity
+        severity: data.severity,
+        station_id: data.station_id
       });
       this.router.navigate(['/manager/complaints']);
     } catch (error: unknown) {

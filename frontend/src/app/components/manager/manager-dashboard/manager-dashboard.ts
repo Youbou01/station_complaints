@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../services/auth-service';
@@ -17,25 +17,33 @@ export class ManagerDashboard implements OnInit {
   authService = inject(AuthService);
   complaintsService = inject(ComplaintsService);
 
-  station = signal<Station | null>(null);
+  stations = signal<Station[]>([]);
   isLoading = signal(true);
   errorMessage = signal('');
 
+  // Computed property for displaying station info
+  stationInfo = computed(() => {
+    const stationsList = this.stations();
+    if (stationsList.length === 0) return 'No station assigned';
+    if (stationsList.length === 1) return stationsList[0].name;
+    return `${stationsList.length} stations`;
+  });
+
   ngOnInit() {
-    this.loadStation();
+    this.loadStations();
     this.complaintsService.loadComplaints();
   }
 
-  loadStation() {
+  loadStations() {
     this.http.get<Station[]>('http://localhost:8000/stations').subscribe({
       next: (stations) => {
         const userId = this.authService.currentUser()?.id;
-        const myStation = stations.find(s => s.manager_id === userId);
-        this.station.set(myStation || null);
+        const myStations = stations.filter(s => s.manager_id === userId);
+        this.stations.set(myStations);
         this.isLoading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Failed to load station');
+        this.errorMessage.set('Failed to load stations');
         this.isLoading.set(false);
       }
     });

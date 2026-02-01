@@ -25,7 +25,7 @@ export class IntervenantComplaints implements OnInit {
   selectedStatus = signal<ComplaintStatus | null>(null);
   resolutionNotes = signal('');
   showModal = signal(false);
-  showRejectModal = signal(false);
+  showOnHoldModal = signal(false);
   successMessage = signal('');
   errorMessage = signal('');
   ratings = signal<Map<number, any>>(new Map());
@@ -83,15 +83,15 @@ export class IntervenantComplaints implements OnInit {
     this.showModal.set(false);
   }
 
-  openRejectModal(complaint: Complaint) {
+  openOnHoldModal(complaint: Complaint) {
     this.selectedComplaint.set(complaint);
-    this.showRejectModal.set(true);
+    this.showOnHoldModal.set(true);
   }
 
-  closeRejectModal() {
+  closeOnHoldModal() {
     this.selectedComplaint.set(null);
     this.resolutionNotes.set('');
-    this.showRejectModal.set(false);
+    this.showOnHoldModal.set(false);
   }
 
   selectStatus(status: ComplaintStatus) {
@@ -124,14 +124,14 @@ export class IntervenantComplaints implements OnInit {
     }
   }
 
-  async rejectComplaint() {
+  async putOnHold() {
     const complaint = this.selectedComplaint();
     if (!complaint) return;
 
     try {
-      await this.complaintsService.updateStatus(complaint.id, 'rejected', this.resolutionNotes() || undefined);
-      this.successMessage.set('Complaint rejected');
-      this.closeRejectModal();
+      await this.complaintsService.updateStatus(complaint.id, 'on_hold', this.resolutionNotes() || undefined);
+      this.successMessage.set('Complaint put on hold');
+      this.closeOnHoldModal();
       setTimeout(() => this.successMessage.set(''), 3000);
     } catch (error) {
       this.errorMessage.set(error as string);

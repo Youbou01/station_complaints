@@ -8,26 +8,42 @@
   @if (isLoading()) {
     <div class="loading">Loading...</div>
   } @else {
-    @if (station(); as s) {
+    @if (stations().length > 0) {
       <div class="station-card">
         <div class="station-header">
-          <h2>Your Station</h2>
-          <span class="station-code">{{ s.code }}</span>
+          <h2>Your Station{{ stations().length > 1 ? 's' : '' }}</h2>
         </div>
-        <div class="station-info">
-          <div class="info-item">
-            <span class="info-label">Name</span>
-            <span class="info-value">{{ s.name }}</span>
+        
+        @if (stations().length === 1) {
+          <div class="station-info">
+            <div class="info-item">
+              <span class="info-label">Name</span>
+              <span class="info-value">{{ stations()[0].name }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Code</span>
+              <span class="info-value">{{ stations()[0].code }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Governorate</span>
+              <span class="info-value">{{ stations()[0].governorate }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Address</span>
+              <span class="info-value">{{ stations()[0].address || 'Not specified' }}</span>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="info-label">Governorate</span>
-            <span class="info-value">{{ s.governorate }}</span>
+        } @else {
+          <div class="stations-list">
+            @for (station of stations(); track station.id) {
+              <div class="station-item">
+                <span class="station-name">{{ station.name }}</span>
+                <span class="station-code-badge">{{ station.code }}</span>
+                <span class="station-gov">{{ station.governorate }}</span>
+              </div>
+            }
           </div>
-          <div class="info-item">
-            <span class="info-label">Address</span>
-            <span class="info-value">{{ s.address || 'Not specified' }}</span>
-          </div>
-        </div>
+        }
       </div>
 
       <div class="section-header">
@@ -59,5 +75,6 @@
         <p>You are not assigned to any station yet. Please contact the administrator.</p>
       </div>
     }
+  }
   }
 </div>

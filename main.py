@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timezone
 
 from database import engine, get_db
 from models import Base, Complaint, User, Station, Department, Rating
@@ -33,6 +33,7 @@ from schemas import (
     RatingCreate,
     RatingResponse,
     AssignAssistantRequest,
+    ManagerFeedbackCreate,
 )
 from security import hash_password, verify_password
 from auth import create_access_token
@@ -215,17 +216,35 @@ def create_complaint(
 ):
     """
     Create a new complaint. Only managers can do this.
-    Complaint is automatically linked to the manager's station.
+    If station_id is provided, validates that manager is assigned to that station.
+    If not provided, uses manager's station (for single-station managers).
     Status starts as "open" and goes to assistant for review.
     """
-    # Get manager's station
-    station = db.query(Station).filter(Station.manager_id == current_user.id).first()
+    # Get manager's stations
+    stations = db.query(Station).filter(Station.manager_id == current_user.id).all()
     
-    if not station:
+    if not stations:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="You are not assigned to any station"
         )
+    
+    # Determine which station to use
+    if complaint.station_id is not None:
+        # Verify manager is assigned to this station
+        station = db.query(Station).filter(
+            Station.id == complaint.station_id,
+            Station.manager_id == current_user.id
+        ).first()
+        
+        if not station:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not assigned to this station"
+            )
+    else:
+        # Use first station (backward compatible for single-station managers)
+        station = stations[0]
     
     # Create complaint with status "open" (no auto-assignment)
     db_complaint = Complaint(
@@ -265,9 +284,10 @@ def get_complaints(
     
     # Role-based filtering
     if current_user.role == "manager":
-        station = db.query(Station).filter(Station.manager_id == current_user.id).first()
-        if station:
-            query = query.filter(Complaint.station_id == station.id)
+        stations = db.query(Station).filter(Station.manager_id == current_user.id).all()
+        if stations:
+            station_ids = [s.id for s in stations]
+            query = query.filter(Complaint.station_id.in_(station_ids))
         else:
             return []
     elif current_user.role == "intervenant":
@@ -305,11 +325,12 @@ def get_complaint(
     
     # Check access based on role
     if current_user.role == "manager":
-        station = db.query(Station).filter(Station.manager_id == current_user.id).first()
-        if not station or complaint.station_id != station.id:
+        stations = db.query(Station).filter(Station.manager_id == current_user.id).all()
+        station_ids = [s.id for s in stations]
+        if not stations or complaint.station_id not in station_ids:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You can only view complaints from your station"
+                detail="You can only view complaints from your stations"
             )
     elif current_user.role == "intervenant":
         if complaint.assigned_to_id != current_user.id:
@@ -454,7 +475,7 @@ def assign_complaint(
     
     # Set assigned_at timestamp if this is the first assignment
     if not complaint.assigned_at:
-        complaint.assigned_at = datetime.now()
+        complaint.assigned_at = datetime.now(timezone.utc)
     
     db.commit()
     db.refresh(complaint)
@@ -514,7 +535,7 @@ def send_complaint(
     
     complaint.assigned_to_id = department.intervenant_id
     complaint.status = "assigned"
-    complaint.assigned_at = datetime.now()
+    complaint.assigned_at = datetime.now(timezone.utc)
     
     db.commit()
     db.refresh(complaint)
@@ -532,7 +553,8 @@ def update_complaint_status(
     """
     Update complaint status.
     - Intervenant: Can update their assigned complaints (in_progress, resolved)
-    - Assistant: Can update any complaint (including rejected)
+    - Assistant: Can update any complaint (including on_hold)
+    Tracks time spent on hold and excludes it from resolution time.
     """
     complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
     
@@ -558,13 +580,25 @@ def update_complaint_status(
                 detail=f"You can only set status to: {', '.join(allowed_statuses)}"
             )
     
+    # Handle on_hold time tracking
+    # When setting to on_hold: record the timestamp
+    if status_update.status == ComplaintStatusEnum.ON_HOLD:
+        complaint.on_hold_at = datetime.now(timezone.utc)
+    
+    # When changing from on_hold to another status: calculate and accumulate time
+    if complaint.status == "on_hold" and status_update.status != ComplaintStatusEnum.ON_HOLD:
+        if complaint.on_hold_at:
+            on_hold_duration = (datetime.now(timezone.utc) - complaint.on_hold_at).total_seconds()
+            complaint.total_on_hold_seconds = (complaint.total_on_hold_seconds or 0) + on_hold_duration
+            complaint.on_hold_at = None
+    
     complaint.status = status_update.status.value
     
     if status_update.resolution_notes:
         complaint.resolution_notes = status_update.resolution_notes
     
     if status_update.status == ComplaintStatusEnum.RESOLVED:
-        complaint.resolved_at = datetime.now()
+        complaint.resolved_at = datetime.now(timezone.utc)
     
     db.commit()
     db.refresh(complaint)
@@ -859,18 +893,6 @@ def assign_manager(
                 detail="User is not a manager"
             )
 
-        # Check if manager is already assigned to another station
-        existing_station = db.query(Station).filter(
-            Station.manager_id == request.manager_id,
-            Station.id != station_id
-        ).first()
-
-        if existing_station:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Manager is already assigned to station: {existing_station.name}"
-            )
-
     station.manager_id = request.manager_id
     db.commit()
     db.refresh(station)
@@ -1115,10 +1137,19 @@ def create_rating(
     
     # Calculate resolution time in hours (from assignment to resolution)
     if complaint.assigned_at:
-        resolution_time = (complaint.resolved_at - complaint.assigned_at).total_seconds() / 3600
+        resolution_time_seconds = (complaint.resolved_at - complaint.assigned_at).total_seconds()
+        # Subtract time spent on hold
+        resolution_time_seconds -= (complaint.total_on_hold_seconds or 0)
+        # Ensure resolution time doesn't go negative
+        resolution_time_seconds = max(0, resolution_time_seconds)
+        resolution_time = resolution_time_seconds / 3600
     else:
         # Fallback to created_at if assigned_at is not set (for old complaints)
-        resolution_time = (complaint.resolved_at - complaint.created_at).total_seconds() / 3600
+        resolution_time_seconds = (complaint.resolved_at - complaint.created_at).total_seconds()
+        resolution_time_seconds -= (complaint.total_on_hold_seconds or 0)
+        # Ensure resolution time doesn't go negative
+        resolution_time_seconds = max(0, resolution_time_seconds)
+        resolution_time = resolution_time_seconds / 3600
     
     db_rating = Rating(
         complaint_id=rating.complaint_id,
@@ -1183,3 +1214,37 @@ def get_my_ratings(
     return db.query(Rating).filter(
         Rating.intervenant_id == current_user.id
     ).order_by(Rating.created_at.desc()).all()
+
+
+# ============== MANAGER FEEDBACK ==============
+
+@app.post("/complaints/{complaint_id}/feedback", response_model=ComplaintResponse, tags=["Complaints"])
+def add_manager_feedback(
+    complaint_id: int,
+    feedback: ManagerFeedbackCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("manager"))
+):
+    """
+    Manager adds feedback on a resolved complaint.
+    Only the manager who created the complaint can add feedback.
+    Only for resolved complaints.
+    """
+    complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
+    
+    if not complaint:
+        raise HTTPException(status_code=404, detail="Complaint not found")
+    
+    if complaint.created_by_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only add feedback to complaints you created")
+    
+    if complaint.status != "resolved":
+        raise HTTPException(status_code=400, detail="Can only add feedback to resolved complaints")
+    
+    complaint.manager_feedback = feedback.feedback
+    complaint.manager_feedback_at = datetime.now(timezone.utc)
+    
+    db.commit()
+    db.refresh(complaint)
+    
+    return complaint

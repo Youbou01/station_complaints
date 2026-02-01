@@ -1,7 +1,7 @@
 import { required, minLength, schema } from '@angular/forms/signals';
 
 export type ComplaintType = 'technical' | 'mechanical' | 'oil_related' | 'safety' | 'administrative';
-export type ComplaintStatus = 'open' | 'assigned' | 'in_progress' | 'resolved' | 'rejected';
+export type ComplaintStatus = 'open' | 'assigned' | 'in_progress' | 'resolved' | 'on_hold';
 
 export const COMPLAINT_TYPES: { value: ComplaintType; label: string }[] = [
   { value: 'technical', label: 'Technical' },
@@ -16,7 +16,7 @@ export const COMPLAINT_STATUSES: { value: ComplaintStatus; label: string }[] = [
   { value: 'assigned', label: 'Assigned' },
   { value: 'in_progress', label: 'In Progress' },
   { value: 'resolved', label: 'Resolved' },
-  { value: 'rejected', label: 'Rejected' }
+  { value: 'on_hold', label: 'On Hold' }
 ];
 
 export const SEVERITY_LEVELS = [
@@ -42,6 +42,10 @@ export interface Complaint {
   updated_at: string | null;
   resolved_at: string | null;
   assigned_at: string | null;
+  on_hold_at: string | null;
+  total_on_hold_seconds: number;
+  manager_feedback: string | null;
+  manager_feedback_at: string | null;
 }
 
 export interface ComplaintDetail extends Complaint {
@@ -68,6 +72,7 @@ export interface ComplaintFormData {
   description: string;
   type: ComplaintType | '';
   severity: number;
+  station_id?: number;
 }
 
 export const complaintInitialData: ComplaintFormData = {

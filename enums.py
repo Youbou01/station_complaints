@@ -37,4 +37,4 @@ class ComplaintStatusEnum(str, Enum):
     ASSIGNED = "assigned"
     IN_PROGRESS = "in_progress"
     RESOLVED = "resolved"
-    REJECTED = "rejected"
+    ON_HOLD = "on_hold"
