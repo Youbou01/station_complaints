@@ -154,3 +154,39 @@
 .no-station p {
   color: #6b6b6b;
 }
+.stations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.station-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+}
+
+.station-name {
+  font-weight: 600;
+  color: #1a1a1a;
+  flex: 1;
+}
+
+.station-code-badge {
+  background-color: #F7C600;
+  color: #1a1a1a;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.station-gov {
+  color: #6b6b6b;
+  font-size: 14px;
+}
+
