@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timezone
 
 from database import engine, get_db
 from models import Base, Complaint, User, Station, Department, Rating
@@ -475,7 +475,7 @@ def assign_complaint(
     
     # Set assigned_at timestamp if this is the first assignment
     if not complaint.assigned_at:
-        complaint.assigned_at = datetime.now()
+        complaint.assigned_at = datetime.now(timezone.utc)
     
     db.commit()
     db.refresh(complaint)
@@ -535,7 +535,7 @@ def send_complaint(
     
     complaint.assigned_to_id = department.intervenant_id
     complaint.status = "assigned"
-    complaint.assigned_at = datetime.now()
+    complaint.assigned_at = datetime.now(timezone.utc)
     
     db.commit()
     db.refresh(complaint)
@@ -583,12 +583,12 @@ def update_complaint_status(
     # Handle on_hold time tracking
     # When setting to on_hold: record the timestamp
     if status_update.status == ComplaintStatusEnum.ON_HOLD:
-        complaint.on_hold_at = datetime.now()
+        complaint.on_hold_at = datetime.now(timezone.utc)
     
     # When changing from on_hold to another status: calculate and accumulate time
     if complaint.status == "on_hold" and status_update.status != ComplaintStatusEnum.ON_HOLD:
         if complaint.on_hold_at:
-            on_hold_duration = (datetime.now() - complaint.on_hold_at).total_seconds()
+            on_hold_duration = (datetime.now(timezone.utc) - complaint.on_hold_at).total_seconds()
             complaint.total_on_hold_seconds = (complaint.total_on_hold_seconds or 0) + on_hold_duration
             complaint.on_hold_at = None
     
@@ -598,7 +598,7 @@ def update_complaint_status(
         complaint.resolution_notes = status_update.resolution_notes
     
     if status_update.status == ComplaintStatusEnum.RESOLVED:
-        complaint.resolved_at = datetime.now()
+        complaint.resolved_at = datetime.now(timezone.utc)
     
     db.commit()
     db.refresh(complaint)
@@ -1140,11 +1140,15 @@ def create_rating(
         resolution_time_seconds = (complaint.resolved_at - complaint.assigned_at).total_seconds()
         # Subtract time spent on hold
         resolution_time_seconds -= (complaint.total_on_hold_seconds or 0)
+        # Ensure resolution time doesn't go negative
+        resolution_time_seconds = max(0, resolution_time_seconds)
         resolution_time = resolution_time_seconds / 3600
     else:
         # Fallback to created_at if assigned_at is not set (for old complaints)
         resolution_time_seconds = (complaint.resolved_at - complaint.created_at).total_seconds()
         resolution_time_seconds -= (complaint.total_on_hold_seconds or 0)
+        # Ensure resolution time doesn't go negative
+        resolution_time_seconds = max(0, resolution_time_seconds)
         resolution_time = resolution_time_seconds / 3600
     
     db_rating = Rating(
@@ -1238,7 +1242,7 @@ def add_manager_feedback(
         raise HTTPException(status_code=400, detail="Can only add feedback to resolved complaints")
     
     complaint.manager_feedback = feedback.feedback
-    complaint.manager_feedback_at = datetime.now()
+    complaint.manager_feedback_at = datetime.now(timezone.utc)
     
     db.commit()
     db.refresh(complaint)
