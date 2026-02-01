@@ -139,7 +139,7 @@
 .status-assigned { background-color: #fef3c7; color: #b45309; }
 .status-in_progress { background-color: #e0e7ff; color: #4338ca; }
 .status-resolved { background-color: #dcfce7; color: #166534; }
-.status-rejected { background-color: #fee2e2; color: #991b1b; }
+.status-on_hold { background-color: #fee2e2; color: #991b1b; }
 
 .severity-badge {
   padding: 4px 10px;

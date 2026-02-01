@@ -7,6 +7,7 @@ export interface ComplaintCreate {
   description: string;
   type: ComplaintType;
   severity: number;
+  station_id?: number;
 }
 
 export interface ComplaintUpdate {
@@ -150,6 +151,23 @@ export class ComplaintsService {
           resolve(updated);
         },
         error: (error) => reject(error.error?.detail || 'Failed to send complaint')
+      });
+    });
+  }
+
+  addFeedback(complaintId: number, feedback: string): Promise<Complaint> {
+    return new Promise((resolve, reject) => {
+      this.http.post<Complaint>(`${this.apiUrl}/complaints/${complaintId}/feedback`, {
+        feedback
+      }).subscribe({
+        next: (updated) => {
+          this.loadComplaints();
+          resolve(updated);
+        },
+        error: (error) => {
+          const message = error.error?.detail || 'Failed to add feedback';
+          reject(message);
+        }
       });
     });
   }

@@ -86,6 +86,7 @@ class ComplaintCreate(BaseModel):
     type: ComplaintTypeEnum
     description: str = Field(min_length=3)
     severity: int = Field(ge=1, le=10)
+    station_id: int | None = None
 
 class ComplaintAssign(BaseModel):
     assigned_to_id: int
@@ -116,6 +117,10 @@ class ComplaintResponse(BaseModel):
     updated_at: datetime | None
     resolved_at: datetime | None
     assigned_at: datetime | None
+    on_hold_at: datetime | None
+    total_on_hold_seconds: float
+    manager_feedback: str | None
+    manager_feedback_at: datetime | None
 
     class Config:
         from_attributes = True
@@ -188,4 +193,10 @@ class AssignAssistantRequest(BaseModel):
     """Schema for assigning an assistant to a station."""
     assistant_id: int | None  # None to unassign
 
+
+# ============== MANAGER FEEDBACK SCHEMAS ==============
+
+class ManagerFeedbackCreate(BaseModel):
+    """Schema for manager to add feedback on resolved complaint."""
+    feedback: str = Field(min_length=5)
 
