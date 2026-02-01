@@ -4,6 +4,14 @@
     <a routerLink="/manager/new-complaint" class="btn-new">New Complaint</a>
   </div>
 
+  @if (successMessage()) {
+    <div class="success-banner">{{ successMessage() }}</div>
+  }
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
   @if (complaintsService.isLoading()) {
     <div class="loading">Loading complaints...</div>
   } @else if (complaintsService.complaints().length === 0) {
@@ -30,8 +38,61 @@
             </span>
             <span class="date">{{ complaint.created_at | date:'mediumDate' }}</span>
           </div>
+          
+          @if (complaint.resolution_notes) {
+            <div class="resolution-notes">
+              <span class="notes-label">Resolution Notes:</span>
+              <p>{{ complaint.resolution_notes }}</p>
+            </div>
+          }
+
+          @if (complaint.status === 'resolved') {
+            @if (complaint.manager_feedback) {
+              <div class="feedback-display">
+                <span class="feedback-label">Your Feedback:</span>
+                <p>{{ complaint.manager_feedback }}</p>
+                <span class="feedback-date">{{ complaint.manager_feedback_at | date:'medium' }}</span>
+              </div>
+            } @else {
+              <div class="card-actions">
+                <button (click)="openFeedbackModal(complaint)" class="btn-feedback">
+                  Add Feedback
+                </button>
+              </div>
+            }
+          }
         </div>
       }
     </div>
   }
 </div>
+
+@if (showFeedbackModal()) {
+  <div class="modal-overlay" (click)="closeFeedbackModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Add Feedback for Complaint #{{ selectedComplaint()?.id }}</h2>
+      <p>Share your feedback on how this complaint was resolved:</p>
+      
+      <div class="notes-group">
+        <label>Feedback *</label>
+        <textarea 
+          [value]="feedbackText()"
+          (input)="feedbackText.set($any($event.target).value)"
+          placeholder="Share your experience with the resolution..."
+          rows="4"
+        ></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button (click)="closeFeedbackModal()" class="btn-cancel">Cancel</button>
+        <button 
+          (click)="submitFeedback()" 
+          [disabled]="!feedbackText() || feedbackText().length < 5"
+          class="btn-confirm"
+        >
+          Submit Feedback
+        </button>
+      </div>
+    </div>
+  </div>
+}

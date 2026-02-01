@@ -61,16 +61,16 @@
               <button (click)="handleComplaint(complaint)" class="btn-handle">
                 Handle
               </button>
-              <button (click)="openRejectModal(complaint)" class="btn-reject">
-                Reject
+              <button (click)="openOnHoldModal(complaint)" class="btn-reject">
+                Put On Hold
               </button>
             }
             @if (complaint.status === 'in_progress') {
               <button (click)="openModal(complaint)" class="btn-update">
                 Update Status
               </button>
-              <button (click)="openRejectModal(complaint)" class="btn-reject">
-                Reject
+              <button (click)="openOnHoldModal(complaint)" class="btn-reject">
+                Put On Hold
               </button>
             }
             @if (complaint.status === 'resolved') {
@@ -79,8 +79,8 @@
                 <span class="rating-display">★ {{ getComplaintRating(complaint.id).rating_score }}/5</span>
               }
             }
-            @if (complaint.status === 'rejected') {
-              <span class="rejected-text">✗ Rejected</span>
+            @if (complaint.status === 'on_hold') {
+              <span class="rejected-text">⏸ On Hold</span>
             }
           </div>
         </div>
@@ -131,30 +131,30 @@
   </div>
 }
 
-@if (showRejectModal()) {
-  <div class="modal-overlay" (click)="closeRejectModal()">
+@if (showOnHoldModal()) {
+  <div class="modal-overlay" (click)="closeOnHoldModal()">
     <div class="modal" (click)="$event.stopPropagation()">
-      <h2>Reject Complaint #{{ selectedComplaint()?.id }}</h2>
-      <p>Please provide a reason for rejection:</p>
+      <h2>Put Complaint On Hold #{{ selectedComplaint()?.id }}</h2>
+      <p>Please provide a reason for putting this complaint on hold:</p>
       
       <div class="notes-group">
-        <label>Rejection Reason *</label>
+        <label>Reason *</label>
         <textarea 
           [value]="resolutionNotes()"
           (input)="resolutionNotes.set($any($event.target).value)"
-          placeholder="Explain why this complaint cannot be handled..."
+          placeholder="Explain why this complaint needs to be put on hold..."
           rows="4"
         ></textarea>
       </div>
 
       <div class="modal-actions">
-        <button (click)="closeRejectModal()" class="btn-cancel">Cancel</button>
+        <button (click)="closeOnHoldModal()" class="btn-cancel">Cancel</button>
         <button 
-          (click)="rejectComplaint()" 
+          (click)="putOnHold()" 
           [disabled]="!resolutionNotes()"
           class="btn-confirm btn-reject-confirm"
         >
-          Reject
+          Put On Hold
         </button>
       </div>
     </div>
