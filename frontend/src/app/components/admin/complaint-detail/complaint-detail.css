@@ -285,3 +285,20 @@
   color: #6b6b6b;
   cursor: not-allowed;
 }
+.info-row span:not(.info-label):not(.status-badge):not(.type-badge):not(.severity-badge) {
+  color: #1a1a1a;
+}
+
+.detail-card .info-row span {
+  color: #1a1a1a;
+}
+/* Fix input text visibility */
+.form-group input,
+.form-group select {
+  color: #1a1a1a;
+  background-color: #ffffff;
+}
+
+.form-group input::placeholder {
+  color: #9ca3af;
+}

@@ -37,17 +37,18 @@ export class IntervenantComplaints implements OnInit {
   }
 
   async loadRatings() {
-    try {
-      const data = await this.http.get<any[]>('http://localhost:8000/ratings').toPromise();
-      const ratingsMap = new Map();
-      data?.forEach((rating: any) => {
-        ratingsMap.set(rating.complaint_id, rating);
-      });
-      this.ratings.set(ratingsMap);
-    } catch (error) {
-      console.error('Failed to load ratings');
-    }
+  try {
+    
+    const data = await this.http.get<any[]>('http://localhost:8000/my-ratings').toPromise();
+    const ratingsMap = new Map();
+    data?.forEach((rating: any) => {
+      ratingsMap.set(rating.complaint_id, rating);
+    });
+    this.ratings.set(ratingsMap);
+  } catch (error) {
+    console.error('Failed to load ratings');
   }
+}
 
   getComplaintRating(complaintId: number): any | null {
     return this.ratings().get(complaintId) || null;

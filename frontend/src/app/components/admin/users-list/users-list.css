@@ -197,6 +197,8 @@
   border: 1px solid #d0d0d0;
   border-radius: 6px;
   font-size: 14px;
+  color: #1a1a1a;
+  background-color: #ffffff;
 }
 
 .form-group input:focus,
@@ -211,3 +213,5 @@
   justify-content: flex-end;
   margin-top: 24px;
 }
+
+

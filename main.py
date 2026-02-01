@@ -270,13 +270,6 @@ def get_complaints(
             query = query.filter(Complaint.station_id == station.id)
         else:
             return []
-    elif current_user.role == "assistant":
-        # Filter to only stations assigned to this assistant
-        assigned_station_ids = [s.id for s in db.query(Station).filter(Station.assistant_id == current_user.id).all()]
-        if assigned_station_ids:
-            query = query.filter(Complaint.station_id.in_(assigned_station_ids))
-        else:
-            return []
     elif current_user.role == "intervenant":
         query = query.filter(Complaint.assigned_to_id == current_user.id)
     
@@ -1178,3 +1171,15 @@ def get_rating(
         )
     
     return rating
+
+@app.get("/my-ratings", response_model=list[RatingResponse], tags=["Ratings"])
+def get_my_ratings(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("intervenant"))
+):
+    """
+    Get ratings for the current intervenant's complaints.
+    """
+    return db.query(Rating).filter(
+        Rating.intervenant_id == current_user.id
+    ).order_by(Rating.created_at.desc()).all()
