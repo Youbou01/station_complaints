@@ -573,7 +573,7 @@ def update_complaint_status(
             )
         
         # Intervenant can only set certain statuses
-        allowed_statuses = ["in_progress", "resolved"]
+        allowed_statuses = ["in_progress", "resolved","on_hold"]
         if status_update.status.value not in allowed_statuses:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -977,6 +977,15 @@ def create_department(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="User is not an intervenant"
             )
+        # Check if intervenant is already assigned to another department
+        existing_dept = db.query(Department).filter(
+        Department.intervenant_id == department.intervenant_id).first()
+
+        if existing_dept:
+            raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"This intervenant is already assigned to department: {existing_dept.name}"
+        )
     
     db_department = Department(
         name=department.name,
@@ -1055,8 +1064,19 @@ def update_department(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="User is not an intervenant"
             )
-        department.intervenant_id = department_update.intervenant_id
+        
+        # Check if intervenant is already assigned to another department
+        existing_dept = db.query(Department).filter(
+        Department.intervenant_id == department_update.intervenant_id,
+        Department.id != department_id  # Exclude current department
+    ).first()
     
+        if existing_dept:
+            raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"This intervenant is already assigned to department: {existing_dept.name}"
+        )
+        department.intervenant_id = department_update.intervenant_id
     db.commit()
     db.refresh(department)
     
