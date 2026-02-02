@@ -42,7 +42,8 @@ from enums import ComplaintStatusEnum, ComplaintTypeEnum, RoleEnum
 
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+#i removed it, because i'll handle schema with alembic now
+# Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
 app = FastAPI(
