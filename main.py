@@ -218,7 +218,7 @@ def create_complaint(
 ):
     """
     Create a new complaint. Only managers can do this.
-    If station_id is provided, validates that manager is assigned to that station.
+    If station_id is prov%ided, validates that manager is assigned to that station.
     If not provided, uses manager's station (for single-station managers).
     Status starts as "open" and goes to assistant for review.
     """

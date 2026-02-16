@@ -1,7 +1,7 @@
 <div class="auth-container">
   <!-- Left Side - Image -->
   <div class="auth-left">
-    <img src="assets/placeholder.svg" alt="AGIL Station" class="auth-image" />
+    <img src="agil--.jpg" alt="AGIL Station" class="auth-image" />
     <div class="auth-overlay">
       <img
         src="https://agilenergy.com.tn/fr/images/logoagilenergy.jpg"
@@ -21,7 +21,7 @@
         <a routerLink="/auth/login" class="auth-link">Log in</a>
       </p>
 
-      <form (submit)="onSubmit();" class="auth-form">
+      <form (submit)="onSubmit()" class="auth-form">
         <!-- Success Message -->
         @if (successMessage()) {
           <div class="success-banner">
@@ -62,8 +62,17 @@
               placeholder="Password"
               class="form-input"
             />
-            <button type="button" (click)="togglePassword()" class="password-toggle">
-              {{ showPassword() ? '🙈' : '👁️' }}
+            <button
+              type="button"
+              (click)="togglePassword()"
+              class="password-toggle"
+              aria-label="Toggle password visibility"
+            >
+              @if (showPassword()) {
+                <i class="bi bi-eye-slash"></i>
+              } @else {
+                <i class="bi bi-eye"></i>
+              }
             </button>
           </div>
 
@@ -112,8 +121,17 @@
               placeholder="Confirm password"
               class="form-input"
             />
-            <button type="button" (click)="toggleConfirmPassword()" class="password-toggle">
-              {{ showConfirmPassword() ? '🙈' : '👁️' }}
+            <button
+              type="button"
+              (click)="toggleConfirmPassword()"
+              class="password-toggle"
+              aria-label="Toggle confirm password visibility"
+            >
+              @if (showConfirmPassword()) {
+                <i class="bi bi-eye-slash"></i>
+              } @else {
+                <i class="bi bi-eye"></i>
+              }
             </button>
           </div>
           @if (signUpModel().confirmPassword.length > 0) {

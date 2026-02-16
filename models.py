@@ -67,7 +67,7 @@ class Complaint(Base):
     station = relationship("Station", back_populates="complaints")
     created_by = relationship("User", back_populates="created_complaints", foreign_keys=[created_by_id])
     assigned_to = relationship("User", back_populates="assigned_complaints", foreign_keys=[assigned_to_id])
-    ratings = relationship("Rating", back_populates="complaint")
+    rating = relationship("Rating", back_populates="complaint", uselist=False)
 
 
 class Department(Base):
@@ -86,13 +86,13 @@ class Rating(Base):
     __tablename__ = "ratings"
     
     id = Column(Integer, primary_key=True, index=True)
-    complaint_id = Column(Integer, ForeignKey("complaints.id"), nullable=False)
+    complaint_id = Column(Integer, ForeignKey("complaints.id"), nullable=False, unique=True)
     intervenant_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     director_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     resolution_time_hours = Column(Float, nullable=False)
     rating_score = Column(Integer, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    complaint = relationship("Complaint", back_populates="ratings")
+    complaint = relationship("Complaint", back_populates="rating", uselist=False)
     intervenant = relationship("User", back_populates="received_ratings", foreign_keys=[intervenant_id])
     director = relationship("User", back_populates="created_ratings", foreign_keys=[director_id])
