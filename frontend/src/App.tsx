@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import api, { getApiError } from "./api";
-import { useAuth } from "./AuthContext";
+import { AuthProvider, useAuth } from "./AuthContext";
 import { COMPLAINT_STATUSES, COMPLAINT_TYPES, GOVERNORATES, ROLES, type Complaint, type ComplaintStatus, type ComplaintType, type Department, type Rating, type Role, type Station, type User } from "./types";
 import { dateLabel, durationLabel, netResolutionSeconds, roleHome, roleLabel, statusLabel, typeLabel } from "./utils";
 
