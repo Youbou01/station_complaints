@@ -65,3 +65,8 @@ frontend/.env.*
 
 # Angular archive build cache
 /frontend-angular/.angular/cache/
+
+# Local backend secrets
+.env
+.env.*
+!.env.example
