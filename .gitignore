@@ -56,3 +56,17 @@ node_modules
 
 /throwups
 throwups
+# React/Vite frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Angular archive build cache
+/frontend-angular/.angular/cache/
+
+# Local backend secrets
+.env
+.env.*
+!.env.example
