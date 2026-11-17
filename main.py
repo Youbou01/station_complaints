@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
+import os
 
 from database import engine, get_db
 from models import Base, Complaint, User, Station, Department, Rating
@@ -56,7 +57,12 @@ app = FastAPI(
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"], #  Angular app's address
+    allow_origins=[
+        "http://localhost:4200", "http://127.0.0.1:4200",
+        "http://localhost:5173", "http://127.0.0.1:5173",
+        "http://localhost:4173", "http://127.0.0.1:4173",
+        *[origin.strip() for origin in os.getenv("FRONTEND_ORIGINS", "").split(",") if origin.strip()],
+    ], # Angular legacy, React/Vite development and preview, plus configured deployment origins
     allow_credentials=True, # Allows cookies/auth headers to be sent
     allow_methods=["*"], # Allows all HTTP methods (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"], # Allows all headers (including Authorization)

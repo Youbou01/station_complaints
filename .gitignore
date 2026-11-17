@@ -56,3 +56,9 @@ node_modules
 
 /throwups
 throwups
+# React/Vite frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example

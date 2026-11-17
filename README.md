@@ -1,5 +1,8 @@
 # SNDP Agil – Station Complaints
 
+> **Active frontend:** React + TypeScript + Vite in `frontend/`. The previous Angular implementation is preserved in `frontend-angular/` as a migration reference. The FastAPI/PostgreSQL backend and existing API routes remain in place.
+
+
 Application web de gestion des réclamations pour le réseau de stations-service de la SNDP Agil. Le système orchestre un flux multi-acteurs avec traçabilité complète, assignation automatique par département, mesure des délais (hors périodes « on hold ») et boucle d’évaluation (feedback manager, notation directeur).
 
 - Référentiel: `Youbou01/station_complaints` (ID: 1140751890)
@@ -28,20 +31,20 @@ Application web de gestion des réclamations pour le réseau de stations-service
 ## Architecture & technologies
 
 - Frontend:
-  - Angular standalone (Signals, formulaires réactifs « signals »)
-  - Zoneless change detection (`provideZonelessChangeDetection`)
-  - Intercepteurs HTTP (JWT Bearer)
-  - Guards par rôle
+  - React 19 + TypeScript + Vite
+  - React Router (navigation et vues protégées par rôle)
+  - Axios (JWT Bearer interceptor)
+  - Context API pour la session et les droits d’accès
   - CSS personnalisée (palette SNDP Agil), composants par rôle
 - Backend:
   - FastAPI (Python), SQLAlchemy ORM
   - PostgreSQL (via `psycopg`)
   - Alembic (migrations de schéma)
   - Authentification JWT (OAuth2 password flow)
-  - CORS autorisant `http://localhost:4200`
+  - CORS autorisant Angular (`4200`), React/Vite (`5173`), preview (`4173`) et les origines additionnelles `FRONTEND_ORIGINS`
 - Outils & libs:
   - Python: fastapi, sqlalchemy, alembic, python-dotenv, passlib (hash), pydantic (schemas)
-  - JS/TS: Angular, RxJS (usage ponctuel), Forms Signals
+  - JS/TS: React, React Router, Axios, TypeScript, Vite
   - GitHub Actions (optionnel), GitHub PRs, revues de code
 
 ---
@@ -145,7 +148,7 @@ CORS:
 
 ---
 
-## Frontend (Angular) – Points techniques
+## Frontend (React) – Points techniques
 
 - Bootstrap: `bootstrapApplication(App, appConfig)`
 - `app.config.ts`:
@@ -234,13 +237,27 @@ CORS:
 
 ---
 
+### Frontend React (active)
+
+```bash
+cd frontend
+npm install
+cp .env.example .env   # optional; default API is http://localhost:8000
+npm run dev
+```
+
+Open http://localhost:5173. Build with `npm run build` and preview with `npm run preview`.
+
+The old Angular source is retained under `frontend-angular/` for migration reference; it is not the active app.
+Backend CORS retains the Angular origin and adds Vite development/preview origins. For deployment, set `FRONTEND_ORIGINS` to a comma-separated list of exact trusted origins.
+
 ## Installation & démarrage
 
 Pré-requis:
 - Python 3.11+
 - PostgreSQL 14+ (ou compatible)
 - Node.js 18+ / npm
-- Angular CLI (optionnel, pour `ng serve`)
+- Node.js 20+ / npm (React + Vite)
 
 Backend:
 ```bash
@@ -270,19 +287,13 @@ uvicorn main:app --reload
 # Backend: http://localhost:8000, docs: http://localhost:8000/docs
 ```
 
-Frontend:
+Frontend (React/Vite):
 ```bash
-# 1) Aller dans le frontend
 cd frontend
-
-# 2) Installer les dépendances
 npm install
-
-# 3) Démarrer (selon configuration)
-npm run start
-# ou
-ng serve -o
-# Frontend: http://localhost:4200
+cp .env.example .env   # optional; default API is http://localhost:8000
+npm run dev
+# Frontend: http://localhost:5173
 ```
 
 Initialisation:
