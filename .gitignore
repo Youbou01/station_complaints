@@ -62,3 +62,6 @@ frontend/dist/
 frontend/.env
 frontend/.env.*
 !frontend/.env.example
+
+# Angular archive build cache
+/frontend-angular/.angular/cache/

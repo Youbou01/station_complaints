@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g)"/>
+  <g fill="#94a3b8" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" text-anchor="middle">
+    <text x="600" y="390" font-size="44" font-weight="600">Station Complaints</text>
+    <text x="600" y="450" font-size="22" opacity="0.85">Placeholder image</text>
+  </g>
+  <g fill="none" stroke="#334155" stroke-width="6" opacity="0.7">
+    <rect x="90" y="90" width="1020" height="620" rx="24"/>
+    <path d="M140 650 L420 420 L560 560 L730 380 L1060 650"/>
+    <circle cx="360" cy="320" r="46"/>
+  </g>
+</svg>
